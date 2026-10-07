@@ -1,0 +1,32 @@
+# secrets
+.env
+procqc/.env
+
+# model-response caches, run outputs, clips, data
+.llm_cache/
+procqc/.llm_cache/
+out/
+runs/
+results/
+clips/
+data/
+*.mp4
+*.mov
+*.mkv
+*.avi
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# os / editors
+.DS_Store
+.idea/
+.vscode/

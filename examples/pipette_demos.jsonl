@@ -1,0 +1,6 @@
+{"episode_id": "d001", "steps": ["s01_pick_pipette", "s02_attach_tip", "s03_uncap_source", "s04_aspirate", "s05_uncap_dest", "s06_dispense", "s07_eject_tip", "s08_recap_source", "s09_recap_dest", "s10_return_pipette"]}
+{"episode_id": "d002", "steps": ["s03_uncap_source", "s05_uncap_dest", "s01_pick_pipette", "s02_attach_tip", "s04_aspirate", "s06_dispense", "c01_verify_volume", "s09_recap_dest", "s07_eject_tip", "s08_recap_source", "s10_return_pipette"]}
+{"episode_id": "d003", "steps": ["s01_pick_pipette", "s02_attach_tip", "s05_uncap_dest", "s03_uncap_source", "s04_aspirate", "s06_dispense", "s08_recap_source", "s07_eject_tip", "s09_recap_dest", "s10_return_pipette"]}
+{"episode_id": "d004", "steps": ["s01_pick_pipette", "s03_uncap_source", "s02_attach_tip", "s04_aspirate", "s05_uncap_dest", "s06_dispense", "c01_verify_volume", "s07_eject_tip", "s09_recap_dest", "s08_recap_source", "s10_return_pipette"]}
+{"episode_id": "d005", "steps": ["s05_uncap_dest", "s01_pick_pipette", "s02_attach_tip", "s03_uncap_source", "s04_aspirate", "s06_dispense", "s07_eject_tip", "s09_recap_dest", "s08_recap_source", "s10_return_pipette"]}
+{"episode_id": "d006", "steps": ["s01_pick_pipette", "s02_attach_tip", "s03_uncap_source", "s05_uncap_dest", "s04_aspirate", "s06_dispense", "s08_recap_source", "s09_recap_dest", "s07_eject_tip", "s10_return_pipette"]}

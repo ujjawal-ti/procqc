@@ -1,0 +1,195 @@
+task_id: pipette_transfer_v1
+name: Reagent transfer by pipette
+version: 0.1.0
+domain: lab_liquid_handling
+description: >
+  Transfer 1.0 mL of reagent from the source vial to the destination vial with a
+  single-channel pipette, then restore the bench (vials capped, pipette in holder).
+
+objects:
+  - {id: pipette, name: single-channel pipette, category: tool, aliases: [pipette, micropipette]}
+  - {id: tip_box, name: tip box, category: consumable, aliases: [tip box, pipette tips]}
+  - {id: vial_src, name: source vial, category: container, aliases: [source vial, reagent vial]}
+  - {id: vial_dst, name: destination vial, category: container, aliases: [destination vial, empty vial]}
+  - {id: cap_src, name: source vial cap, category: part, aliases: [vial cap]}
+  - {id: cap_dst, name: destination vial cap, category: part, aliases: [vial cap]}
+  - {id: waste, name: tip waste bin, category: fixture, aliases: [waste bin, sharps bin]}
+  - {id: holder, name: pipette holder, category: fixture, aliases: [pipette stand]}
+
+initial_state:
+  - {name: IsOpen, args: [vial_src], value: false, checker: vlm_effect}
+  - {name: IsOpen, args: [vial_dst], value: false, checker: vlm_effect}
+  - {name: InHolder, args: [pipette], value: true, checker: detector}
+
+goal:
+  - {name: IsFilled, args: [vial_dst], value: true, checker: vlm_effect}
+  - {name: IsOpen, args: [vial_src], value: false, checker: vlm_effect}
+  - {name: IsOpen, args: [vial_dst], value: false, checker: vlm_effect}
+  - {name: InHolder, args: [pipette], value: true, checker: detector}
+
+nodes:
+  - {id: start, name: Start, kind: start}
+
+  - id: s01_pick_pipette
+    name: Pick up pipette
+    description: Grasp the pipette from its holder.
+    target_objects: [pipette]
+    preconditions:
+      - {name: InHolder, args: [pipette], value: true, checker: detector}
+    effects:
+      - {name: IsGrasped, args: [pipette], value: true, checker: gripper_width}
+      - {name: InHolder, args: [pipette], value: false, checker: detector}
+    effect_description: The pipette is held in the gripper, holder slot empty.
+    pitfalls: [grasping by the tip cone instead of the body]
+
+  - id: s02_attach_tip
+    name: Attach tip
+    description: Press the pipette onto a fresh tip in the tip box.
+    target_objects: [tip_box]
+    tools: [pipette]
+    preconditions:
+      - {name: IsGrasped, args: [pipette], value: true, checker: gripper_width}
+    effects:
+      - {name: HasTip, args: [pipette], value: true, checker: detector}
+    effect_description: A tip is seated on the pipette; one tip-box slot is empty.
+    expected_duration_s: [1.0, 6.0]
+    pitfalls: [tip not fully seated, reusing a used tip]
+
+  - id: s03_uncap_source
+    name: Uncap source vial
+    description: Remove the cap from the source vial and set it down.
+    target_objects: [vial_src, cap_src]
+    preconditions:
+      - {name: IsOpen, args: [vial_src], value: false, checker: vlm_effect}
+    effects:
+      - {name: IsOpen, args: [vial_src], value: true, checker: vlm_effect}
+    effect_description: Source vial mouth is open; its cap lies on the bench.
+
+  - id: s04_aspirate
+    name: Aspirate reagent
+    description: Lower the tip into the source vial and aspirate 1.0 mL.
+    target_objects: [vial_src]
+    tools: [pipette]
+    preconditions:
+      - {name: HasTip, args: [pipette], value: true, checker: detector}
+      - {name: IsOpen, args: [vial_src], value: true, checker: vlm_effect}
+    effects:
+      - {name: ContainsLiquid, args: [pipette], value: true, checker: vlm_effect}
+    effect_description: Liquid visible in the tip; pipette lifted clear of the source vial.
+    expected_duration_s: [2.0, 10.0]
+    pitfalls: [aspirating with cap still on, tip touching vial bottom, air bubbles]
+
+  - id: s05_uncap_dest
+    name: Uncap destination vial
+    description: Remove the cap from the destination vial and set it down.
+    target_objects: [vial_dst, cap_dst]
+    preconditions:
+      - {name: IsOpen, args: [vial_dst], value: false, checker: vlm_effect}
+    effects:
+      - {name: IsOpen, args: [vial_dst], value: true, checker: vlm_effect}
+    effect_description: Destination vial mouth is open; its cap lies on the bench.
+
+  - id: s06_dispense
+    name: Dispense into destination
+    description: Dispense the full volume into the destination vial.
+    target_objects: [vial_dst]
+    tools: [pipette]
+    preconditions:
+      - {name: ContainsLiquid, args: [pipette], value: true, checker: vlm_effect}
+      - {name: IsOpen, args: [vial_dst], value: true, checker: vlm_effect}
+    effects:
+      - {name: IsFilled, args: [vial_dst], value: true, checker: vlm_effect}
+      - {name: ContainsLiquid, args: [pipette], value: false, checker: vlm_effect}
+    effect_description: Liquid level visible in destination vial; tip empty.
+    expected_duration_s: [2.0, 10.0]
+    pitfalls: [partial dispense, dispensing outside the vial]
+
+  - id: c01_verify_volume
+    name: Verify transferred volume
+    kind: check
+    optional: true
+    description: Visually confirm the destination level against the 1.0 mL mark.
+    target_objects: [vial_dst]
+    preconditions:
+      - {name: IsFilled, args: [vial_dst], value: true, checker: vlm_effect}
+    effect_description: Same scene; operator pauses with vial in view.
+
+  - id: s07_eject_tip
+    name: Eject tip into waste
+    description: Eject the used tip into the waste bin.
+    target_objects: [waste]
+    tools: [pipette]
+    preconditions:
+      - {name: HasTip, args: [pipette], value: true, checker: detector}
+      - {name: ContainsLiquid, args: [pipette], value: false, checker: vlm_effect}
+    effects:
+      - {name: HasTip, args: [pipette], value: false, checker: detector}
+    effect_description: Pipette has no tip; tip is in the waste bin.
+    pitfalls: [ejecting outside the bin]
+
+  - id: s08_recap_source
+    name: Recap source vial
+    description: Replace and tighten the source vial cap.
+    mandatory_terminal: true
+    target_objects: [vial_src, cap_src]
+    preconditions:
+      - {name: IsOpen, args: [vial_src], value: true, checker: vlm_effect}
+    effects:
+      - {name: IsOpen, args: [vial_src], value: false, checker: vlm_effect}
+    effect_description: Source vial capped.
+    settle_time_s: 0.5
+
+  - id: s09_recap_dest
+    name: Recap destination vial
+    description: Replace and tighten the destination vial cap.
+    mandatory_terminal: true
+    target_objects: [vial_dst, cap_dst]
+    preconditions:
+      - {name: IsOpen, args: [vial_dst], value: true, checker: vlm_effect}
+      - {name: IsFilled, args: [vial_dst], value: true, checker: vlm_effect}
+    effects:
+      - {name: IsOpen, args: [vial_dst], value: false, checker: vlm_effect}
+    effect_description: Destination vial capped.
+    settle_time_s: 0.5
+
+  - id: s10_return_pipette
+    name: Return pipette to holder
+    description: Place the pipette back in its holder and release.
+    mandatory_terminal: true
+    target_objects: [pipette, holder]
+    preconditions:
+      - {name: IsGrasped, args: [pipette], value: true, checker: gripper_width}
+      - {name: HasTip, args: [pipette], value: false, checker: detector}
+    effects:
+      - {name: IsGrasped, args: [pipette], value: false, checker: gripper_width}
+      - {name: InHolder, args: [pipette], value: true, checker: detector}
+    effect_description: Pipette upright in holder; gripper open and clear.
+    settle_time_s: 0.5
+
+  - {id: end, name: End, kind: end}
+
+edges:
+  - {source: start, target: s01_pick_pipette}
+  - {source: start, target: s03_uncap_source}
+  - {source: start, target: s05_uncap_dest}
+  - {source: s01_pick_pipette, target: s02_attach_tip}
+  - {source: s02_attach_tip, target: s04_aspirate, relation: PROVIDES_INPUT_FOR}
+  - {source: s03_uncap_source, target: s04_aspirate}
+  - {source: s04_aspirate, target: s06_dispense, relation: PROVIDES_INPUT_FOR}
+  - {source: s05_uncap_dest, target: s06_dispense}
+  - {source: s06_dispense, target: c01_verify_volume}
+  - {source: s06_dispense, target: s07_eject_tip}
+  - {source: s06_dispense, target: s09_recap_dest}
+  - {source: s04_aspirate, target: s08_recap_source}
+  - {source: c01_verify_volume, target: s09_recap_dest}
+  - {source: s07_eject_tip, target: s10_return_pipette}
+  - {source: s08_recap_source, target: end}
+  - {source: s09_recap_dest, target: end}
+  - {source: s10_return_pipette, target: end}
+  # legitimate recovery: a bad/damaged tip is ejected and a new one attached
+  - {source: s07_eject_tip, target: s02_attach_tip, relation: CORRECTS,
+     condition: tip damaged or contaminated before aspiration}
+
+provenance:
+  source: manual
+  notes: [hand-written reference example for tests]

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "procqc"
+version = "0.1.0"
+description = "Procedural-error quality control for recorded demonstrations of a written procedure"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pydantic>=2",
+    "networkx",
+    "pyyaml",
+    "python-dotenv",
+    "openai>=1",
+    "google-genai",
+    "numpy",
+    "opencv-python-headless",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[tool.setuptools.packages.find]
+include = ["procqc*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py39"
