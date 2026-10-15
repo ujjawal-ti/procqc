@@ -1,0 +1,148 @@
+{
+ "scenario": {
+  "activity_type": "",
+  "site_id": "",
+  "location": "",
+  "scene_type": "",
+  "country": "",
+  "quote": "Name: Return clothes from bathroom floor to hamper",
+  "other": {
+   "Name": "Return clothes from bathroom floor to hamper",
+   "From": "Bathroom floor / behind door.",
+   "To": "Laundry hamper in bathroom/hallway."
+  }
+ },
+ "objects": [
+  {
+   "name": "clothes",
+   "role": "clothing items to be gathered and placed into the hamper",
+   "kinds": [
+    "towels",
+    "shirts",
+    "socks"
+   ],
+   "quote": "Clothes."
+  },
+  {
+   "name": "hamper",
+   "role": "receptacle for receiving the clothes",
+   "kinds": [],
+   "quote": "To: Laundry hamper in bathroom/hallway."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "1\u20133 clothing items (towels, shirts, socks) are present.",
+   "quote": "Items: 1\u20133 clothing items (towels, shirts, socks)."
+  },
+  {
+   "fact": "Clothing items are located on the floor or draped behind the door in random positions.",
+   "quote": "Position: On the floor or draped behind the door in random positions."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the clothes and stand still for 1 second.",
+   "quote": "Walk to the clothes and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Start with arms in a neutral position. Pick up 1\u20132 items with one hand using a full-palm grasp.",
+   "quote": "Start with arms in a neutral position. Pick up 1\u20132 items with one hand using a full-palm grasp."
+  },
+  {
+   "number": 3,
+   "text": "Walk to the hamper and stop for 1 second.",
+   "quote": "Walk to the hamper and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Hold items over the hamper opening and release them inside.",
+   "quote": "Hold items over the hamper opening and release them inside."
+  }
+ ],
+ "repeat": {
+  "present": true,
+  "step_numbers": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "unit": "1\u20132 items",
+  "end_condition": "All clothing items are in the hamper.",
+  "count": "1\u20133",
+  "quote": "Pick up 1\u20132 items with one hand using a full-palm grasp."
+ },
+ "acceptance": [
+  {
+   "step_number": 4,
+   "criterion": "The items are released inside the hamper.",
+   "quote": "release them inside"
+  }
+ ],
+ "constraints": [
+  {
+   "rule": "No wet or soiled items may be handled.",
+   "step_numbers": [],
+   "violation_looks_like": "A person handles or collects an item that is wet or visibly stained/soiled.",
+   "quote": "No wet or soiled items."
+  },
+  {
+   "rule": "Do not overstuff the hamper.",
+   "step_numbers": [
+    4
+   ],
+   "violation_looks_like": "Clothes are forced into an already full hamper or are overflowing above the rim.",
+   "quote": "Do not overstuff hamper."
+  },
+  {
+   "rule": "Do not drag items on the floor.",
+   "step_numbers": [
+    2,
+    3
+   ],
+   "violation_looks_like": "A piece of clothing contacts the floor and is pulled along the surface while being moved.",
+   "quote": "Do not drag items on floor."
+  },
+  {
+   "rule": "Start the pick-up action with arms in a neutral position.",
+   "step_numbers": [
+    2
+   ],
+   "violation_looks_like": "The person begins the reach with arms pre-raised, bent, or not resting neutrally.",
+   "quote": "Start with arms in a neutral position."
+  },
+  {
+   "rule": "Pick up items using one hand with a full-palm grasp.",
+   "step_numbers": [
+    2
+   ],
+   "violation_looks_like": "The person uses two hands or holds the clothing using only fingertips or a pinch grip.",
+   "quote": "with one hand using a full-palm grasp"
+  }
+ ],
+ "not_modelled": [
+  {
+   "reason": "Dataset collection reset instructions.",
+   "quote": "Reset: Randomize positions and item types each episode."
+  },
+  {
+   "reason": "Dataset collection diversity instruction regarding item types.",
+   "quote": "Vary item types (towels, shirts, socks)."
+  },
+  {
+   "reason": "Dataset collection diversity instruction regarding positions.",
+   "quote": "Change positions (floor vs. behind door)."
+  },
+  {
+   "reason": "Dataset collection diversity instruction regarding item count.",
+   "quote": "Vary the number of items (1\u20133)."
+  },
+  {
+   "reason": "Dataset collection diversity instruction regarding hamper location.",
+   "quote": "Change hamper location (bathroom vs. hallway)."
+  }
+ ]
+}

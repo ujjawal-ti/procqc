@@ -1,0 +1,118 @@
+{
+ "scenario": {
+  "activity_type": "",
+  "site_id": "",
+  "location": "",
+  "scene_type": "",
+  "country": "",
+  "quote": "",
+  "other": {}
+ },
+ "objects": [
+  {
+   "name": "throw pillow",
+   "role": "picked up and arranged on couch",
+   "kinds": [
+    "Throw pillows",
+    "cushions"
+   ],
+   "quote": "Throw pillows / cushions."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "There are 2 to 4 throw pillows.",
+   "quote": "Items: 2\u20134 throw pillows."
+  },
+  {
+   "fact": "Pillows are scattered on the floor and/or other furniture.",
+   "quote": "Position: Scattered on the floor and/or other furniture."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the pillow and stand still for 1 second.",
+   "quote": "Walk to the pillow and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Start with arms in a neutral position. Pick up the pillow with both hands gripping the center.",
+   "quote": "Start with arms in a neutral position. Pick up the pillow with both hands gripping the center."
+  },
+  {
+   "number": 3,
+   "text": "Walk to the sofa and stop for 1 second.",
+   "quote": "Walk to the sofa and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Place the pillow against the sofa arm or backrest, then release (the pillow should lean without falling).",
+   "quote": "Place the pillow against the sofa arm or backrest, then release (the pillow should lean without falling)."
+  }
+ ],
+ "repeat": {
+  "present": true,
+  "step_numbers": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "unit": "pillow",
+  "end_condition": "all pillows are arranged on the couch",
+  "count": "2\u20134",
+  "quote": "Items: 2\u20134 throw pillows."
+ },
+ "acceptance": [
+  {
+   "step_number": 4,
+   "criterion": "The pillow leans against the sofa arm or backrest without falling.",
+   "quote": "(the pillow should lean without falling)"
+  }
+ ],
+ "constraints": [
+  {
+   "rule": "Do not throw pillows onto couch.",
+   "step_numbers": [
+    4
+   ],
+   "violation_looks_like": "A pillow is thrown or tossed onto the couch instead of being placed and released by hand.",
+   "quote": "Do not throw pillows onto couch."
+  }
+ ],
+ "not_modelled": [
+  {
+   "reason": "Task name / title.",
+   "quote": "Name: Arrange throw pillows neatly on couch"
+  },
+  {
+   "reason": "Task summary description.",
+   "quote": "From: Floor / scattered on furniture."
+  },
+  {
+   "reason": "Task summary description.",
+   "quote": "To: Arranged on couch."
+  },
+  {
+   "reason": "Instructions about resetting between recordings and varying the dataset.",
+   "quote": "Reset: Randomize starting positions each episode; vary pillow sizes and shapes."
+  },
+  {
+   "reason": "Data collection diversity guideline.",
+   "quote": "Diversity: Vary pillow sizes and shapes."
+  },
+  {
+   "reason": "Data collection diversity guideline.",
+   "quote": "Change starting positions (floor vs. other furniture)."
+  },
+  {
+   "reason": "Data collection diversity guideline.",
+   "quote": "Vary number of pillows (2\u20134)."
+  },
+  {
+   "reason": "Data collection diversity guideline.",
+   "quote": "Change arrangement style on couch."
+  }
+ ]
+}

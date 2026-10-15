@@ -1,0 +1,96 @@
+{
+ "scenario": {
+  "activity_type": "Return pet bed to designated spot",
+  "site_id": "",
+  "location": "",
+  "scene_type": "",
+  "country": "",
+  "quote": "Name: Return pet bed to designated spot",
+  "other": {
+   "From": "Sofa / floor.",
+   "To": "Designated pet bed spot in the living room."
+  }
+ },
+ "objects": [
+  {
+   "name": "pet bed",
+   "role": "item to return to designated spot",
+   "kinds": [],
+   "quote": "Pet bed."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "1 pet bed.",
+   "quote": "Items: 1 pet bed."
+  },
+  {
+   "fact": "On the sofa or a random floor location away from its designated spot.",
+   "quote": "Position: On the sofa or a random floor location away from its designated spot."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the pet bed and stand still for 1 second.",
+   "quote": "1. Walk to the pet bed and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Start with arms in a neutral position. Pick up the bed with both hands gripping opposite edges.",
+   "quote": "2. Start with arms in a neutral position. Pick up the bed with both hands gripping opposite edges."
+  },
+  {
+   "number": 3,
+   "text": "Walk to the designated floor spot and stop for 1 second.",
+   "quote": "3. Walk to the designated floor spot and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Lower the bed flat onto the floor so it rests without folding.",
+   "quote": "4. Lower the bed flat onto the floor so it rests without folding."
+  }
+ ],
+ "repeat": {
+  "present": false,
+  "step_numbers": [],
+  "unit": "",
+  "end_condition": "",
+  "count": "",
+  "quote": ""
+ },
+ "acceptance": [
+  {
+   "step_number": 4,
+   "criterion": "The bed rests without folding.",
+   "quote": "so it rests without folding"
+  }
+ ],
+ "constraints": [],
+ "not_modelled": [
+  {
+   "reason": "Data collection instruction on resetting between recording episodes.",
+   "quote": "Reset: Vary starting position and orientation each episode."
+  },
+  {
+   "reason": "States that no constraints are specified.",
+   "quote": "Constraints / Avoid: None specified."
+  },
+  {
+   "reason": "Data collection instruction on varying object size across recordings.",
+   "quote": "Diversity: Vary pet bed size."
+  },
+  {
+   "reason": "Data collection instruction on varying starting position across recordings.",
+   "quote": "Change starting position (sofa vs. random floor location)."
+  },
+  {
+   "reason": "Data collection instruction on varying object orientation across recordings.",
+   "quote": "Vary orientation."
+  },
+  {
+   "reason": "Data collection instruction on varying grip technique based on object size.",
+   "quote": "Use one-hand vs. two-hand grip based on bed size."
+  }
+ ]
+}

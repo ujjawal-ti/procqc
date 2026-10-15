@@ -1,0 +1,427 @@
+task_id: return_pet_toys_from_floor_to_pet_toy_bin
+name: Return pet toys from floor to pet toy bin
+version: 0.1.0
+domain: household
+description: Return pet toys scattered on the floor to the pet toy bin or basket.
+objects:
+- id: pet_toy
+  name: pet toy
+  category: consumable
+  aliases:
+  - pet toy
+  - toy
+  - plush toy
+  - rubber ball
+  - rope toy
+  substitutes: []
+  hazards: []
+  kinds:
+  - plush toys
+  - rubber balls
+  - rope toys
+  - etc.
+  source:
+    quote: Pet toys (plush toys, rubber balls, rope toys, etc.).
+    inferred: false
+- id: pet_toy_bin
+  name: pet toy bin
+  category: container
+  aliases:
+  - pet toy bin
+  - bin
+  - basket
+  - toy bin
+  substitutes: []
+  hazards: []
+  kinds:
+  - bin
+  - basket
+  source:
+    quote: 'To: Pet toy bin/basket.'
+    inferred: false
+initial_state:
+- name: IsPresent
+  args:
+  - pet_toy
+  value: true
+  checker: detector
+  scope: global
+- name: OnFloor
+  args:
+  - pet_toy
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+goal:
+- name: InContainer
+  args:
+  - pet_toy
+  - pet_toy_bin
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+nodes:
+- id: start
+  name: start
+  kind: start
+  description: Task start boundary.
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Initial task state before approaching toys.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+- id: s01_walk_to_toy
+  name: walk to toy
+  kind: step
+  description: Walk to the toy and stand still for 1 second.
+  preconditions:
+  - name: OnFloor
+    args:
+    - pet_toy
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: StandingNear
+    args:
+    - pet_toy
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - pet_toy
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Person is standing still near the target pet toy.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 1. Walk to the toy and stand still for 1 second.
+    inferred: false
+- id: s02_pick_up_toy
+  name: pick up toy
+  kind: step
+  description: Start with arms in a neutral position. Pick up the toy with one hand, wrapping your fingers
+    around the widest part.
+  preconditions:
+  - name: StandingNear
+    args:
+    - pet_toy
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: Holding
+    args:
+    - pet_toy
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: GraspedAtWidestPart
+    args:
+    - pet_toy
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: OnFloor
+    args:
+    - pet_toy
+    value: false
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - pet_toy
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: The pet toy is picked up with one hand, fingers wrapped around its widest part.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 2. Start with arms in a neutral position. Pick up the toy with one hand, wrapping your fingers
+      around the widest part.
+    inferred: false
+- id: s03_walk_to_bin
+  name: walk to bin
+  kind: step
+  description: Walk to the bin and stop for 1 second.
+  preconditions:
+  - name: Holding
+    args:
+    - pet_toy
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: StandingNear
+    args:
+    - pet_toy_bin
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - pet_toy_bin
+  - pet_toy
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Person has reached the bin while holding the toy and is stopped.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 3. Walk to the bin and stop for 1 second.
+    inferred: false
+- id: s04_hold_over_bin_and_release
+  name: hold over bin and release
+  kind: step
+  description: Hold the toy over the bin opening and release.
+  preconditions:
+  - name: StandingNear
+    args:
+    - pet_toy_bin
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: Holding
+    args:
+    - pet_toy
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: Holding
+    args:
+    - pet_toy
+    value: false
+    checker: vlm_effect
+    scope: instance
+  - name: InContainer
+    args:
+    - pet_toy
+    - pet_toy_bin
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: true
+  permitted_repeats: 999
+  target_objects:
+  - pet_toy
+  - pet_toy_bin
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: The toy has been released over the opening and rests in the pet toy bin.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls:
+  - Do not throw toys into bin.
+  source:
+    quote: 4. Hold the toy over the bin opening and release.
+    inferred: false
+- id: end
+  name: end
+  kind: end
+  description: Task completion boundary.
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: All pet toys are placed into the bin.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+edges:
+- source: start
+  target: s01_walk_to_toy
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s01_walk_to_toy
+  target: s02_pick_up_toy
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s01_walk_to_toy
+  target: s02_pick_up_toy
+  relation: PROVIDES_INPUT_FOR
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_toy
+  target: s03_walk_to_bin
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_toy
+  target: s03_walk_to_bin
+  relation: PROVIDES_INPUT_FOR
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s03_walk_to_bin
+  target: s04_hold_over_bin_and_release
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s03_walk_to_bin
+  target: s04_hold_over_bin_and_release
+  relation: PROVIDES_INPUT_FOR
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s04_hold_over_bin_and_release
+  target: end
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+provenance:
+  source: llm_draft_v2
+  model: gemini-3.8-flash
+  created_at: '2026-10-12T05:33:08+00:00'
+  notes:
+  - 0 lint warnings at acceptance
+  - 0 inferred elements
+  - usd=0.0400
+metadata: {}
+schema_version: '2'
+scenario:
+  activity_type: ''
+  site_id: ''
+  location: ''
+  scene_type: ''
+  country: ''
+  other:
+    name: Return pet toys from floor to pet toy bin
+    from: Floor.
+    to: Pet toy bin/basket.
+  source:
+    quote: 'Name: Return pet toys from floor to pet toy bin'
+    inferred: false
+starting_state:
+- description: There are 2 to 4 pet toys present.
+  objects:
+  - pet_toy
+  predicates:
+  - name: IsPresent
+    args:
+    - pet_toy
+    value: true
+    checker: detector
+    scope: global
+  source:
+    quote: 'Items: 2–4 pet toys (plush, rubber, rope, ball).'
+    inferred: false
+- description: The toys are scattered in random positions on the floor.
+  objects:
+  - pet_toy
+  predicates:
+  - name: OnFloor
+    args:
+    - pet_toy
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  source:
+    quote: 'Position: Scattered on the floor in random positions.'
+    inferred: false
+repeat_blocks:
+- id: rb01_return_toys
+  steps:
+  - s01_walk_to_toy
+  - s02_pick_up_toy
+  - s03_walk_to_bin
+  - s04_hold_over_bin_and_release
+  unit: pet toy
+  objects:
+  - pet_toy
+  until:
+  - name: InContainer
+    args:
+    - pet_toy
+    - pet_toy_bin
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  until_description: all pet toys are returned to the bin
+  count_hint: 2–4
+  source:
+    quote: 'Items: 2–4 pet toys (plush, rubber, rope, ball).'
+    inferred: false
+acceptance:
+- id: acc01_widest_part_grasp
+  step: s02_pick_up_toy
+  objects:
+  - pet_toy
+  criterion: The fingers are wrapped around the widest part of the toy when picked up.
+  predicate:
+    name: GraspedAtWidestPart
+    args:
+    - pet_toy
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: wrapping your fingers around the widest part
+    inferred: false
+constraints:
+- id: c01_do_not_throw
+  rule: Do not throw toys into bin.
+  applies_to:
+  - s04_hold_over_bin_and_release
+  violation_looks_like: The person throws or tosses the toy toward or into the bin instead of holding
+    it over the opening and releasing it.
+  taxonomy: violation
+  source:
+    quote: Do not throw toys into bin.
+    inferred: false
+not_modelled:
+- quote: 'Reset: Randomize positions and vary toy types each episode.'
+  reason: Instruction for resetting the environment between recordings.
+- quote: 'Diversity: Vary toy types (plush, rubber, rope). Change positions on floor. Vary number of items
+    (2–4). Change bin location.'
+  reason: Instruction on varying parameters across data collection recordings.

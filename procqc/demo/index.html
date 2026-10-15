@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>procqc review demo</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10); --hover: rgba(11,11,11,0.04);
+  --s1: #2a78d6; --s2: #eb6834;
+  --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b; --dropped: #898781; --label: #52514e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --hover: rgba(255,255,255,0.05);
+    --s1: #3987e5; --s2: #d95926; --label: #c3c2b7;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10); --hover: rgba(255,255,255,0.05);
+  --s1: #3987e5; --s2: #d95926; --label: #c3c2b7;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--page); color: var(--ink); }
+a { color: inherit; }
+button, select, input { font: inherit; color: inherit; }
+header { height: 48px; display: flex; align-items: center; gap: 16px; padding: 0 20px; border-bottom: 1px solid var(--ring); background: var(--surface); position: sticky; top: 0; z-index: 5; }
+header h1 { font-size: 15px; font-weight: 600; margin: 0; }
+header .sub { color: var(--ink2); font-size: 13px; }
+header .spacer { flex: 1; }
+.layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); height: calc(100vh - 48px); }
+aside { border-right: 1px solid var(--ring); background: var(--surface); overflow-y: auto; padding: 12px 0 24px; }
+aside h2 { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 14px 16px 6px; font-weight: 600; }
+aside h3 { font-size: 12px; color: var(--ink2); margin: 12px 16px 4px; font-weight: 600; }
+.nav a { display: flex; align-items: center; gap: 8px; padding: 6px 16px; text-decoration: none; border-left: 3px solid transparent; }
+.nav a:hover { background: var(--hover); }
+.nav a.active { border-left-color: var(--s1); background: var(--hover); font-weight: 600; }
+.nav .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav .counts { display: flex; gap: 6px; font-size: 12px; color: var(--ink2); font-variant-numeric: tabular-nums; }
+.search { margin: 4px 16px 4px; display: flex; gap: 6px; }
+.search input, .search select { width: 100%; padding: 5px 8px; border: 1px solid var(--ring); border-radius: 6px; background: var(--page); }
+main { overflow-y: auto; padding: 22px 28px 60px; }
+.title { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.title h2 { margin: 0; font-size: 22px; font-weight: 600; }
+.lede { color: var(--ink2); margin: 4px 0 14px; max-width: 900px; }
+.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0 16px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--ring); border-radius: 8px; }
+.filters label { color: var(--ink2); font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.filters select { padding: 4px 8px; border: 1px solid var(--ring); border-radius: 6px; background: var(--page); }
+.seg { display: inline-flex; border: 1px solid var(--ring); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 4px 10px; cursor: pointer; }
+.seg button.on { background: var(--ink); color: var(--surface); }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; overflow-x: auto; }
+.card h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; }
+.card .note { color: var(--ink2); font-size: 12.5px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.kpi .l { color: var(--ink2); font-size: 12.5px; }
+.kpi .v { font-size: 26px; font-weight: 600; margin: 2px 0; }
+.kpi .d { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.kpi.hero .v { font-size: 34px; }
+.chart .row { display: grid; grid-template-columns: 170px 1fr; align-items: center; gap: 10px; padding: 3px 0; }
+.chart .row .lab { color: var(--ink2); font-size: 13px; text-align: right; }
+.chart .bars { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 2px 0; }
+.chart .track { position: relative; height: 16px; }
+.chart .bar { position: absolute; left: 0; top: 0; height: 16px; border-radius: 0 4px 4px 0; min-width: 0; }
+.chart .val { position: absolute; top: 0; font-size: 12px; color: var(--ink2); line-height: 16px; padding-left: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chart .grid { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--grid); }
+.chart .axis { display: grid; grid-template-columns: 170px 1fr; gap: 10px; }
+.chart .ticks { position: relative; height: 18px; border-top: 1px solid var(--axis); }
+.chart .ticks span { position: absolute; top: 2px; transform: translateX(-50%); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chart .hit { position: absolute; inset: -2px 0; cursor: default; }
+.legend { display: flex; gap: 16px; margin: 0 0 8px 180px; font-size: 12.5px; color: var(--ink2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th { text-align: left; font-weight: 600; color: var(--ink2); font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--axis); white-space: nowrap; }
+td { padding: 6px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: var(--hover); }
+.chip { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 12.5px; padding: 1px 8px 1px 6px; border: 1px solid var(--ring); border-radius: 999px; background: var(--page); }
+.chip b { font-size: 11px; line-height: 1; }
+.st-flagged b { color: var(--critical); } .st-review b { color: var(--warning); } .st-dropped b { color: var(--dropped); }
+.st-clean b { color: var(--good); } .st-error b { color: var(--serious); }
+.gt { color: var(--ink2); font-size: 12.5px; white-space: nowrap; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.chips button { border: 1px solid var(--ring); background: var(--page); border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 12.5px; }
+.chips button.on { background: var(--ink); color: var(--surface); }
+.muted { color: var(--muted); }
+.small { font-size: 12.5px; }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.tbtn { border: 1px solid var(--ring); background: var(--page); border-radius: 5px; padding: 0 6px; cursor: pointer; font-variant-numeric: tabular-nums; font-size: 12.5px; white-space: nowrap; }
+.tbtn:hover { border-color: var(--s1); }
+details summary { cursor: pointer; color: var(--ink2); font-size: 12.5px; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 2px 10px; font-size: 12.5px; margin-top: 4px; }
+.kv span:nth-child(odd) { color: var(--muted); }
+.player { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+video { width: 100%; max-height: 62vh; background: #000; border-radius: 8px; }
+.timeline { position: relative; }
+.tl-row { display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 8px; height: 22px; }
+.tl-row .lab { font-size: 12px; color: var(--ink2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-track { position: relative; height: 14px; background: var(--page); border: 1px solid var(--grid); border-radius: 3px; cursor: pointer; }
+.tl-mark { position: absolute; top: 1px; bottom: 1px; border-radius: 2px; min-width: 4px; box-shadow: 0 0 0 1px var(--surface); }
+.tl-head { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ink); pointer-events: none; }
+.tl-scale { position: relative; height: 16px; margin-left: 158px; }
+.tl-scale span { position: absolute; font-size: 11px; color: var(--muted); transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+.kgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }
+.ev { border-top: 1px solid var(--grid); padding: 8px 0; }
+.ev:first-of-type { border-top: 0; }
+.ev .top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ev .step { margin: 4px 0 0; }
+#tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--ring); border-radius: 6px; padding: 6px 8px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.12); display: none; z-index: 20; max-width: 320px; }
+.empty { color: var(--muted); padding: 10px 0; }
+.legend-st { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="h-title">procqc review demo</h1>
+  <span class="sub" id="h-sub"></span>
+  <span class="spacer"></span>
+  <div class="seg" role="group" aria-label="Theme">
+    <button data-theme-set="light">Light</button><button data-theme-set="auto">Auto</button><button data-theme-set="dark">Dark</button>
+  </div>
+</header>
+<div class="layout">
+  <aside>
+    <h2>Error kinds</h2>
+    <nav class="nav" id="nav-kinds"></nav>
+    <h2>Recordings</h2>
+    <div class="search"><input id="q" placeholder="Search recordings" aria-label="Search recordings"></div>
+    <div class="search"><select id="q-ds" aria-label="Dataset"></select><select id="q-st" aria-label="Status">
+      <option value="">Any status</option><option value="flagged">Has a flag</option><option value="review">Has review items</option>
+      <option value="clean">Nothing flagged</option><option value="error">Has labelled errors</option></select></div>
+    <nav class="nav" id="nav-recs"></nav>
+  </aside>
+  <main id="view"></main>
+</div>
+<div id="tip"></div>
+<script src="data.js"></script>
+<script>
+"use strict";
+const D = window.DEMO;
+const KINDS = Object.keys(D.kinds);
+const STATUS = {
+  flagged: ["▲", "Flagged"], review: ["◆", "Needs review"], dropped: ["○", "Dropped by verifier"],
+  clean: ["✓", "Clean"], error: ["!", "Check failed"],
+};
+const OUTCOME = {
+  match: "✓ matches a labelled error", false_alarm: "✗ false alarm", no_label: "✗ no labelled error",
+  would_match: "matches a labelled error (dropped)",
+};
+const REC = Object.fromEntries(D.recordings.map(r => [r.id, r]));
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const pct = x => x == null ? "–" : (Math.round(x * 1000) / 10) + "%";
+const tfmt = s => { if (s == null) return "–"; s = Math.max(0, s); const m = Math.floor(s / 60), x = (s - 60 * m).toFixed(1); return `${m}:${x.padStart(4, "0")}`; };
+const chip = st => `<span class="chip st-${st}"><b aria-hidden="true">${STATUS[st][0]}</b>${STATUS[st][1]}</span>`;
+const kt = k => D.kinds[k].title;
+
+// ----- theme ---------------------------------------------------------------------------
+function setTheme(t) {
+  if (t === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", t);
+  localStorage.setItem("procqc-theme", t);
+  document.querySelectorAll("[data-theme-set]").forEach(b => b.classList.toggle("on", b.dataset.themeSet === t));
+}
+document.querySelectorAll("[data-theme-set]").forEach(b => b.onclick = () => setTheme(b.dataset.themeSet));
+setTheme(localStorage.getItem("procqc-theme") || "auto");
+
+// ----- tooltip -------------------------------------------------------------------------
+const tip = $("#tip");
+function showTip(e, html) { tip.innerHTML = html; tip.style.display = "block"; moveTip(e); }
+function moveTip(e) { tip.style.left = Math.min(window.innerWidth - 330, e.clientX + 14) + "px"; tip.style.top = (e.clientY + 14) + "px"; }
+function hideTip() { tip.style.display = "none"; }
+document.addEventListener("mouseover", e => { const t = e.target.closest("[data-tip]"); if (t) showTip(e, t.dataset.tip); });
+document.addEventListener("mousemove", e => { if (tip.style.display === "block") moveTip(e); });
+document.addEventListener("mouseout", e => { if (e.target.closest("[data-tip]")) hideTip(); });
+
+// ----- routing -------------------------------------------------------------------------
+function parse() {
+  const h = location.hash.slice(1) || "";
+  const [path, qs] = h.split("?");
+  const parts = path.split("/").filter(Boolean).map(decodeURIComponent);
+  const q = Object.fromEntries(new URLSearchParams(qs || ""));
+  return {parts, q};
+}
+function go(parts, q) {
+  const qs = new URLSearchParams(Object.entries(q || {}).filter(([, v]) => v != null && v !== "")).toString();
+  location.hash = "/" + parts.map(encodeURIComponent).join("/") + (qs ? "?" + qs : "");
+}
+window.addEventListener("hashchange", render);
+
+// ----- sidebar -------------------------------------------------------------------------
+function kindCounts(k) {
+  let f = 0, r = 0;
+  for (const rec of D.recordings) { const kv = rec.kinds[k]; if (!kv) continue; if (kv.verdict === "flagged") f++; else if (kv.verdict === "review") r++; }
+  return {f, r};
+}
+function recSummary(rec) {
+  const v = Object.values(rec.kinds);
+  return {f: v.filter(x => x.verdict === "flagged").length, r: v.filter(x => x.verdict === "review").length};
+}
+function navKinds(active) {
+  $("#nav-kinds").innerHTML = KINDS.filter(k => D.recordings.some(r => r.kinds[k])).map(k => {
+    const c = kindCounts(k);
+    return `<a href="#/kind/${k}" class="${active === k ? "active" : ""}"><span class="name">${esc(kt(k))}</span>
+      <span class="counts"><span data-tip="Recordings with a flag">${STATUS.flagged[0]} ${c.f}</span><span data-tip="Recordings with review items">${STATUS.review[0]} ${c.r}</span></span></a>`;
+  }).join("");
+}
+const dsSel = $("#q-ds");
+dsSel.innerHTML = `<option value="">All datasets</option>` + D.datasets.map(d => `<option>${esc(d.name)}</option>`).join("");
+function navRecs(active) {
+  const q = $("#q").value.trim().toLowerCase(), ds = dsSel.value, st = $("#q-st").value;
+  let html = "";
+  for (const d of D.datasets) {
+    if (ds && d.name !== ds) continue;
+    const rs = D.recordings.filter(r => r.dataset === d.name && (!q || (r.episode_id + " " + r.task).toLowerCase().includes(q))).filter(r => {
+      const s = recSummary(r);
+      return !st || (st === "flagged" ? s.f : st === "review" ? s.r : st === "clean" ? !s.f && !s.r : r.labels.length);
+    });
+    if (!rs.length) continue;
+    html += `<h3>${esc(d.name)} <span class="muted">(${rs.length})</span></h3>` + rs.map(r => {
+      const s = recSummary(r);
+      return `<a href="#/rec/${encodeURIComponent(r.id)}" class="${active === r.id ? "active" : ""}" title="${esc(r.task)}">
+        <span class="name">${esc(r.episode_id)}</span><span class="counts">${s.f ? `<span>${STATUS.flagged[0]} ${s.f}</span>` : ""}${s.r ? `<span>${STATUS.review[0]} ${s.r}</span>` : ""}${!s.f && !s.r ? `<span>${STATUS.clean[0]}</span>` : ""}</span></a>`;
+    }).join("");
+  }
+  $("#nav-recs").innerHTML = html || `<div class="empty" style="padding:6px 16px">No recordings match.</div>`;
+}
+["input", "change"].forEach(ev => { $("#q").addEventListener(ev, () => navRecs(parse().parts[1])); });
+dsSel.onchange = $("#q-st").onchange = () => navRecs(parse().parts[1]);
+
+// ----- kind view -----------------------------------------------------------------------
+function metricRow(k, ds, split) { return D.metrics.find(m => m.kind === k && m.dataset === ds && m.split === split); }
+function kpi(label, value, detail, hero) {
+  return `<div class="kpi${hero ? " hero" : ""}"><div class="l">${esc(label)}</div><div class="v">${value}</div><div class="d">${detail}</div></div>`;
+}
+function chart(mf, mr) {
+  const rows = [
+    ["Recording recall", m => m.recording.recall], ["False-alarm rate", m => m.recording.false_alarm_rate],
+    ["Recording precision", m => m.recording.precision], ["Event recall", m => m.event.recall], ["Event precision", m => m.event.precision],
+  ];
+  const ticks = [0, 25, 50, 75, 100];
+  const grid = ticks.map(t => `<div class="grid" style="left:${t}%"></div>`).join("");
+  const bar = (v, color, name, label) => {
+    const w = v == null ? 0 : v * 100;
+    const t = esc(`${label} · ${name}: ${v == null ? "not defined (no cases)" : pct(v)}`);
+    return `<div class="track">${grid}${v == null ? `<span class="val" style="left:0">–</span>` :
+      `<div class="bar" style="width:${w}%;background:${color}"></div><span class="val" style="left:${w}%">${pct(v)}</span>`}
+      <div class="hit" data-tip="${t}"></div></div>`;
+  };
+  return `<div class="legend"><span><i style="background:var(--s1)"></i>Flags only</span><span><i style="background:var(--s2)"></i>Flags + review</span></div>
+    <div class="chart" role="img" aria-label="Metrics with flags only and with flags plus review items">${rows.map(([l, f]) =>
+      `<div class="row"><div class="lab">${l}</div><div class="bars">${bar(f(mf), "var(--s1)", "Flags only", l)}${bar(f(mr), "var(--s2)", "Flags + review", l)}</div></div>`).join("")}
+    <div class="axis"><div></div><div class="ticks">${ticks.map(t => `<span style="left:${t}%">${t}%</span>`).join("")}</div></div></div>
+    <p class="note">Lower is better for the false-alarm rate; higher is better for the others. A dash means the rate is undefined (for example, no recording with a labelled error).</p>`;
+}
+const usd = x => x == null ? "–" : x === 0 ? "$0" : x >= 1 ? "$" + x.toFixed(2) : x >= 0.01 ? "$" + x.toFixed(3) : "$" + x.toFixed(4);
+const SAME_CHECK = {addition_repeat: "repeated_addition", repeated_addition: "addition_repeat"};
+function costCard(k, mr, ev) {
+  const narr = mr.narration_usd_per_recording;
+  const own = mr.usd_per_recording;
+  const perHit = mr.usd_total != null && ev.tp ? mr.usd_total / ev.tp : null;
+  const narrDetail = narr == null
+    ? (k === "early_termination" ? "not used: this check sends its own clip of the final moments" : "not used: step times came from a reference, not the narration")
+    : "one video call + step matching per recording, paid once and shared by omission, misordering, off-graph and repeat";
+  return `<div class="card"><h3>Cost · ${esc(mr.dataset)} · ${esc(mr.split)}</h3>
+    <div class="kpis" style="margin-bottom:8px">
+      ${kpi("Own cost per recording", usd(own), "this check's own model calls (candidates and verifier)", true)}
+      ${kpi("Shared narration per recording", narr == null ? "–" : usd(narr), narrDetail)}
+      ${kpi("Per recording, narration included", own == null ? "–" : usd(own + (narr || 0)), narr == null ? "same as the own cost" : "what this check would cost if it were the only one run")}
+      ${kpi("Own cost per minute of video", usd(mr.usd_per_minute), `${Math.round(mr.minutes)} minutes over ${mr.n} recordings`)}
+      ${kpi("Own cost, all recordings", usd(mr.usd_total), narr == null ? `${mr.n} recordings` : `plus ${usd(mr.narration_usd_total)} of shared narration`)}
+      ${kpi("Own cost per correct detection", usd(perHit), ev.tp ? `${ev.tp} correct events at the current setting` : "no correct event at the current setting")}
+    </div>
+    <p class="note">Costs are the recorded spend of the saved runs at the list prices of the time. A recording with no candidate makes no verifier call and costs $0 for that check.${
+      SAME_CHECK[k] ? ` ${esc(kt(k))} and ${esc(kt(SAME_CHECK[k]))} come from the same check, so the same cost is shown under both.` : ""}</p></div>`;
+}
+function metricsTable(k, ds) {
+  const rows = D.metrics.filter(m => m.kind === k && m.dataset === ds);
+  const line = (m, set) => {
+    const e = m[set], r = e.recording, v = e.event;
+    return `<tr><td>${esc(m.split)}</td><td>${set === "flags" ? "Flags only" : "Flags + review"}</td><td class="num">${m.n}</td>
+      <td class="num">${r.tp}/${r.tp + r.fn}</td><td class="num">${pct(r.recall)}</td><td class="num">${r.fp}/${r.fp + r.tn}</td>
+      <td class="num">${pct(r.false_alarm_rate)}</td><td class="num">${pct(r.precision)}</td>
+      <td class="num">${v.tp}</td><td class="num">${v.fp}</td><td class="num">${v.fn}</td><td class="num">${pct(v.precision)}</td><td class="num">${pct(v.recall)}</td>
+      <td class="num">${usd(m.usd_per_recording)}</td><td class="num">${usd(m.narration_usd_per_recording)}</td></tr>`;
+  };
+  return `<table><thead><tr><th>Split</th><th>Setting</th><th class="num">Recordings</th><th class="num">Rec. TP/P</th><th class="num">Recall</th>
+    <th class="num">FP/Neg</th><th class="num">False-alarm rate</th><th class="num">Precision</th><th class="num">Ev. TP</th><th class="num">Ev. FP</th>
+    <th class="num">Ev. FN</th><th class="num">Ev. precision</th><th class="num">Ev. recall</th><th class="num">Own $ / rec.</th><th class="num">Narration $ / rec.</th></tr></thead>
+    <tbody>${rows.map(m => line(m, "flags") + line(m, "flags + review")).join("")}</tbody></table>`;
+}
+function eventRow(rec, k, e) {
+  const kv = rec.kinds[k];
+  const t = e.span ? e.span[0] : null;
+  const out = e.outcome ? (OUTCOME[e.outcome] || e.outcome) : "";
+  const fl = e.fields || {};
+  const what = fl.detail || (fl.specified ? `${fl.specified} → ${fl.used}` : "") || "";
+  return `<tr class="click" data-go="${esc(rec.id)}" data-t="${t ?? ""}">
+    <td><a href="#/rec/${encodeURIComponent(rec.id)}${t != null ? "?t=" + t : ""}">${esc(rec.episode_id)}</a><div class="muted small">${esc(kv.split)}</div></td>
+    <td>${chip(e.status)}${e.fields && e.fields.routed ? `<div class="muted small">verifier rejected</div>` : ""}</td>
+    <td class="gt">${esc(out)}</td>
+    <td>${esc(e.step_text || e.step || "")}</td>
+    <td class="num">${e.span ? `${tfmt(e.span[0])}–${tfmt(e.span[1])}` : "–"}</td>
+    <td class="small">${esc(what)}${e.explanation ? `<div class="muted">${esc(e.explanation)}</div>` : ""}</td></tr>`;
+}
+function renderKind(k, q) {
+  const dsList = D.datasets.map(d => d.name).filter(n => D.metrics.some(m => m.kind === k && m.dataset === n));
+  const ds = dsList.includes(q.ds) ? q.ds : dsList[0];
+  const splits = D.metrics.filter(m => m.kind === k && m.dataset === ds).map(m => m.split);
+  const split = splits.includes(q.split) ? q.split : "all";
+  const set = q.set === "flags" ? "flags" : "flags + review";
+  const mr = metricRow(k, ds, split);
+  const m = mr[set], r = m.recording, v = m.event;
+  const info = D.kinds[k];
+  const vnote = info.router ? "Verifier is a router: a rejection goes to human review, nothing is dropped."
+    : ["early_termination", "wrong_tool_object"].includes(k) ? "One check per recording or step; no separate verifier."
+    : "Verifier is a filter: a rejection is dropped from the flags and the review list, and stays visible below.";
+  const recs = D.recordings.filter(x => x.dataset === ds && x.kinds[k] && (split === "all" || x.kinds[k].split === split));
+  const evs = [], missed = [], clean = [];
+  for (const rec of recs) {
+    const kv = rec.kinds[k];
+    for (const e of kv.events) evs.push([rec, e]);
+    for (const g of kv.gold || []) if (!g.hit) missed.push([rec, g]);
+    if (kv.verdict === "clean") clean.push(rec);
+  }
+  const fil = q.st || "all";
+  const counts = {all: evs.length, flagged: evs.filter(x => x[1].status === "flagged").length, review: evs.filter(x => x[1].status === "review").length,
+    dropped: evs.filter(x => x[1].status === "dropped").length, missed: missed.length, clean: clean.length};
+  const fbtn = (key, label) => `<button class="${fil === key ? "on" : ""}" data-st="${key}">${label} <span class="muted">${counts[key]}</span></button>`;
+  let list;
+  if (fil === "missed") {
+    list = missed.length ? `<table><thead><tr><th>Recording</th><th>Labelled error</th><th class="num">Time</th><th>Note</th></tr></thead><tbody>${missed.map(([rec, g]) =>
+      `<tr class="click" data-go="${esc(rec.id)}" data-t="${g.span ? g.span[0] : ""}"><td><a href="#/rec/${encodeURIComponent(rec.id)}">${esc(rec.episode_id)}</a></td>
+       <td>${esc(g.step_text || g.step || "")}</td><td class="num">${g.span ? tfmt(g.span[0]) : "–"}</td><td class="small">${esc(g.note)}</td></tr>`).join("")}</tbody></table>`
+      : `<div class="empty">No labelled error was missed (with flags + review).</div>`;
+  } else if (fil === "clean") {
+    list = clean.length ? `<table><thead><tr><th>Recording</th><th>Split</th><th>Ground truth</th><th>Task</th></tr></thead><tbody>${clean.map(rec => {
+      const kv = rec.kinds[k];
+      return `<tr class="click" data-go="${esc(rec.id)}"><td><a href="#/rec/${encodeURIComponent(rec.id)}">${esc(rec.episode_id)}</a></td><td>${esc(kv.split)}</td>
+        <td class="gt">${kv.has_error ? "✗ has a labelled error (missed)" : "✓ no labelled error"}</td><td class="small">${esc(rec.task)}</td></tr>`;
+    }).join("")}</tbody></table>` : `<div class="empty">Every recording has a flag or a review item.</div>`;
+  } else {
+    const rows = evs.filter(([, e]) => fil === "all" || e.status === fil);
+    list = rows.length ? `<table><thead><tr><th>Recording</th><th>Status</th><th>Ground truth</th><th>Step</th><th class="num">Time</th><th>What the check saw</th></tr></thead>
+      <tbody>${rows.map(([rec, e]) => eventRow(rec, k, e)).join("")}</tbody></table>` : `<div class="empty">No events with this status.</div>`;
+  }
+  const noPos = r.tp + r.fn === 0;
+  $("#view").innerHTML = `
+    <div class="title"><h2>${esc(info.title)}</h2></div>
+    <p class="lede">${esc(info.definition)} ${esc(vnote)}</p>
+    <div class="filters">
+      <label>Dataset <select id="f-ds">${dsList.map(n => `<option ${n === ds ? "selected" : ""}>${esc(n)}</option>`).join("")}</select></label>
+      <label>Split <select id="f-split">${splits.map(s => `<option ${s === split ? "selected" : ""}>${esc(s)}</option>`).join("")}</select></label>
+      <label>Counted as detections <span class="seg"><button data-set="flags" class="${set === "flags" ? "on" : ""}">Flags only</button><button data-set="flags + review" class="${set !== "flags" ? "on" : ""}">Flags + review</button></span></label>
+    </div>
+    ${(D.datasets.find(d => d.name === ds) || {}).note ? `<p class="note small" style="margin:-6px 0 12px">${esc(D.datasets.find(d => d.name === ds).note)}</p>` : ""}
+    <div class="kpis">
+      ${kpi("Recording recall", noPos ? "–" : pct(r.recall), noPos ? "no recording with a labelled error" : `${r.tp} of ${r.tp + r.fn} recordings with the error`, true)}
+      ${kpi("False-alarm rate", pct(r.false_alarm_rate), `${r.fp} of ${r.fp + r.tn} clean recordings detected`)}
+      ${kpi("Recording precision", pct(r.precision), `${r.tp} of ${r.tp + r.fp} detected recordings`)}
+      ${kpi("Event precision", pct(v.precision), `${v.tp} correct, ${v.fp} false`)}
+      ${kpi("Event recall", pct(v.recall), `${v.tp} found, ${v.fn} missed`)}
+      ${kpi("Recordings checked", mr.n, `${Math.round(mr.minutes)} minutes of video`)}
+    </div>
+    ${costCard(k, mr, v)}
+    <div class="card"><h3>Flags only vs flags + review · ${esc(ds)} · ${esc(split)}</h3>${chart(mr.flags, mr["flags + review"])}</div>
+    <div class="card"><h3>Metrics table · ${esc(ds)}</h3>${metricsTable(k, ds)}
+      <p class="note">Recording level: a recording counts as detected when it has at least one detection of this kind. Event level: each labelled error is matched at most once.
+      ${k === "addition_offgraph" || k === "addition_repeat" ? "Off-graph additions and repeats are matched by time overlap (repeats also by step)." : k === "early_termination" ? "Early termination is one event per recording." : "Events are matched by step."}</p></div>
+    <div class="card"><h3>Every event · ${esc(ds)} · ${esc(split)}</h3>
+      <div class="chips" id="stchips">${fbtn("all", "All events")}${fbtn("flagged", STATUS.flagged[0] + " Flagged")}${fbtn("review", STATUS.review[0] + " Needs review")}${fbtn("dropped", STATUS.dropped[0] + " Dropped by verifier")}${fbtn("missed", "Missed labelled errors")}${fbtn("clean", STATUS.clean[0] + " Clean recordings")}</div>
+      ${list}</div>`;
+  const nq = o => go(["kind", k], Object.assign({ds, split, set: set === "flags" ? "flags" : "", st: fil === "all" ? "" : fil}, o));
+  $("#f-ds").onchange = e => nq({ds: e.target.value, split: "all"});
+  $("#f-split").onchange = e => nq({split: e.target.value});
+  document.querySelectorAll("[data-set]").forEach(b => b.onclick = () => nq({set: b.dataset.set === "flags" ? "flags" : ""}));
+  document.querySelectorAll("#stchips [data-st]").forEach(b => b.onclick = () => nq({st: b.dataset.st === "all" ? "" : b.dataset.st}));
+  document.querySelectorAll("tr[data-go]").forEach(tr => tr.onclick = e => {
+    if (e.target.closest("a")) return;
+    go(["rec", tr.dataset.go], tr.dataset.t ? {t: tr.dataset.t} : {});
+  });
+}
+
+// ----- recording view ------------------------------------------------------------------
+function evDetail(e) {
+  const kv = Object.entries(Object.assign({}, e.fields || {}, e.verifier || {})).filter(([k]) => k !== "detail");
+  const ev = (e.evidence || []).filter(Boolean);
+  return (kv.length || ev.length) ? `<details><summary>Details</summary><div class="kv">${kv.map(([k, v]) =>
+    `<span>${esc(k.replace(/_/g, " "))}</span><span>${esc(Array.isArray(v) ? v.join(", ") : v)}</span>`).join("")}
+    ${ev.length ? `<span>evidence</span><span>${ev.map(esc).join("<br>")}</span>` : ""}</div></details>` : "";
+}
+function recCost(rec) {
+  const kvs = Object.entries(rec.kinds).filter(([k]) => k !== "repeated_addition");  // same check as redundant repeat
+  const own = kvs.reduce((a, [, kv]) => a + (kv.usd || 0), 0);
+  const narr = Math.max(0, ...kvs.map(([, kv]) => kv.narration_usd || 0));
+  return ` · cost of this recording ${usd(own + narr)} (${narr ? `narration ${usd(narr)} + ` : ""}checks ${usd(own)})`;
+}
+function renderRec(id, q) {
+  const rec = REC[id];
+  if (!rec) { $("#view").innerHTML = `<div class="empty">Unknown recording.</div>`; return; }
+  const ks = KINDS.filter(k => rec.kinds[k]);
+  const checked = new Set(ks.map(k => k));
+  const card = k => {
+    const kv = rec.kinds[k];
+    if (kv.error) return `<div class="card"><h3>${esc(kt(k))} ${chip("error")}</h3><div class="note">${esc(kv.error)}</div></div>`;
+    const evs = kv.events.map(e => `<div class="ev"><div class="top">${chip(e.status)}${e.span ? `<button class="tbtn" data-seek="${e.span[0]}">${tfmt(e.span[0])}–${tfmt(e.span[1])}</button>` : ""}
+      <span class="gt">${esc(e.outcome ? (OUTCOME[e.outcome] || e.outcome) : "")}</span>
+      ${e.fields && e.fields.routed ? `<span class="muted small">verifier rejected · a human decides</span>` : ""}</div>
+      <div class="step">${esc(e.step_text || e.step || "")}</div>
+      ${e.fields && (e.fields.detail || e.fields.specified) ? `<div class="small muted">${esc(e.fields.detail || `${e.fields.specified} → ${e.fields.used}`)}</div>` : ""}
+      ${e.explanation ? `<div class="small">${esc(e.explanation)}</div>` : ""}${evDetail(e)}</div>`).join("");
+    const miss = (kv.gold || []).filter(g => !g.hit).map(g => `<div class="ev"><div class="top"><span class="chip"><b aria-hidden="true">✗</b>Missed labelled error</span>
+      ${g.span ? `<button class="tbtn" data-seek="${g.span[0]}">${tfmt(g.span[0])}–${tfmt(g.span[1])}</button>` : ""}</div>
+      <div class="step">${esc(g.step_text || g.step || "")}</div><div class="small muted">${esc(g.note)}</div></div>`).join("");
+    const gt = kv.has_error ? `${kv.gold.length} labelled` : "no labelled error";
+    return `<div class="card"><h3>${esc(kt(k))} &nbsp;${chip(kv.verdict)} <span class="muted small">&nbsp;${esc(kv.split)} · ${gt} · own cost ${usd(kv.usd)}</span></h3>
+      ${evs || `<div class="empty">No candidate events.</div>`}${miss}</div>`;
+  };
+  const rows = [["Labelled errors", rec.labels.map(l => ({span: l.span, cls: "label", tip: `${l.kind}: ${l.step_text || l.step || ""}`}))]]
+    .concat(ks.map(k => [kt(k), rec.kinds[k].events.map(e => ({span: e.span, cls: e.status, tip: `${STATUS[e.status][1]}: ${e.step_text || e.step || ""}`}))]));
+  const otherLabels = rec.labels.filter(l => !KINDS.some(k => checked.has(k) && labelKind(k) === l.kind));
+  $("#view").innerHTML = `
+    <div class="title"><h2>${esc(rec.episode_id)}</h2><span class="muted">${esc(rec.dataset)}</span></div>
+    <p class="lede">${esc(rec.task)}${recCost(rec)}</p>
+    <div class="player card">
+      ${rec.video ? `<video id="vid" controls preload="metadata" src="/video/${rec.video}"></video>` : `<div class="empty">No video for this recording.</div>`}
+      <div class="timeline" id="tl"></div>
+      <div class="legend-st small">${["flagged", "review", "dropped"].map(chip).join("")}<span class="chip"><b style="color:var(--label)" aria-hidden="true">■</b>Labelled error</span><span class="muted">Click a mark or a time to jump there.</span></div>
+    </div>
+    <div class="kgrid">${ks.map(card).join("") || `<div class="empty">No check ran on this recording.</div>`}</div>
+    ${rec.labels.length ? `<div class="card"><h3>All labelled errors (${rec.labels.length})</h3><table><thead><tr><th>Kind</th><th>Step</th><th class="num">Time</th><th>Note</th></tr></thead><tbody>${rec.labels.map(l =>
+      `<tr><td>${esc(l.kind)}${otherLabels.includes(l) ? `<div class="muted small">not covered by a check here</div>` : ""}</td><td>${esc(l.step_text || l.step || "")}</td>
+       <td class="num">${l.span ? `<button class="tbtn" data-seek="${l.span[0]}">${tfmt(l.span[0])}</button>` : "–"}</td><td class="small">${esc(l.note)}</td></tr>`).join("")}</tbody></table></div>`
+      : `<div class="card"><h3>Labelled errors</h3><div class="empty">None: this recording is labelled clean.</div></div>`}
+    <div class="card"><details><summary>Procedure steps (${rec.steps.length})</summary><ol class="small">${rec.steps.map(([s, t]) => `<li>${esc(t)} <span class="muted mono">${esc(s)}</span></li>`).join("")}</ol></details></div>`;
+  const vid = $("#vid");
+  let dur = rec.duration || 0;
+  const drawTl = () => {
+    if (!dur) { $("#tl").innerHTML = ""; return; }
+    const pos = s => Math.max(0, Math.min(100, 100 * s / dur));
+    const color = c => c === "label" ? "var(--label)" : c === "flagged" ? "var(--critical)" : c === "review" ? "var(--warning)" : "var(--dropped)";
+    const step = dur > 1200 ? 300 : dur > 400 ? 60 : dur > 120 ? 30 : 10;
+    const ticks = []; for (let t = 0; t <= dur; t += step) ticks.push(t);
+    $("#tl").innerHTML = rows.map(([lab, ms]) => `<div class="tl-row"><div class="lab" title="${esc(lab)}">${esc(lab)}</div><div class="tl-track" data-track>
+      ${ms.filter(m => m.span).sort((a, b) => ORDER[a.cls] - ORDER[b.cls]).map(m => `<div class="tl-mark" style="left:${pos(m.span[0])}%;width:${Math.max(0.4, pos(m.span[1]) - pos(m.span[0]))}%;background:${color(m.cls)}"
+        data-seek="${m.span[0]}" data-tip="${esc(m.tip)} (${tfmt(m.span[0])}–${tfmt(m.span[1])})"></div>`).join("")}<div class="tl-head"></div></div></div>`).join("")
+      + `<div class="tl-scale">${ticks.map(t => `<span style="left:${pos(t)}%">${tfmt(t).replace(/\.\d$/, "")}</span>`).join("")}</div>`;
+    document.querySelectorAll("[data-track]").forEach(tr => tr.onclick = e => {
+      if (e.target.dataset.seek || !vid) return;
+      const b = tr.getBoundingClientRect(); seek(dur * (e.clientX - b.left) / b.width);
+    });
+    head();
+  };
+  const head = () => { if (vid && dur) document.querySelectorAll(".tl-head").forEach(h => h.style.left = (100 * vid.currentTime / dur) + "%"); };
+  const seek = t => { if (!vid) return; vid.currentTime = Math.max(0, t - 1); vid.play().catch(() => {}); };
+  SEEK = seek;
+  if (vid) {
+    vid.addEventListener("loadedmetadata", () => { if (!rec.duration && vid.duration) { dur = vid.duration; drawTl(); } if (q.t) vid.currentTime = Math.max(0, parseFloat(q.t) - 1); });
+    vid.addEventListener("timeupdate", head);
+  }
+  drawTl();
+}
+const ORDER = {label: 0, dropped: 1, review: 2, flagged: 3};  // flags drawn on top where marks overlap
+let SEEK = null;  // the open recording's seek function; one delegated listener for every view
+document.querySelector("#view").addEventListener("click", e => {
+  const s = e.target.closest("[data-seek]");
+  if (s && SEEK) { e.preventDefault(); e.stopPropagation(); SEEK(parseFloat(s.dataset.seek)); }
+});
+const LABEL_KIND = {early_termination: "early_termination", omission: "omission", misordering: "misordering", addition_offgraph: "addition_offgraph",
+  addition_repeat: "addition_repeat", repeated_addition: "repeated_addition", wrong_tool_object: "wrong_tool_object"};
+function labelKind(k) { return LABEL_KIND[k]; }
+
+// ----- main ----------------------------------------------------------------------------
+function render() {
+  const {parts, q} = parse();
+  hideTip();
+  SEEK = null;
+  $("#h-title").textContent = D.title;
+  $("#h-sub").textContent = `${D.recordings.length} recordings · ${D.datasets.length} datasets`;
+  if (parts[0] === "rec" && parts[1]) { navKinds(null); navRecs(parts[1]); renderRec(parts[1], q); }
+  else {
+    const k = KINDS.includes(parts[1]) ? parts[1] : KINDS.find(x => D.recordings.some(r => r.kinds[x]));
+    navKinds(k); navRecs(null); renderKind(k, q);
+  }
+  $("main").scrollTop = 0;
+}
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+{
+ "scenario": {
+  "activity_type": "Return shoes from entry floor to shoe rack",
+  "site_id": "",
+  "location": "Entryway",
+  "scene_type": "",
+  "country": "",
+  "quote": "Name: Return shoes from entry floor to shoe rack",
+  "other": {
+   "from": "Entryway floor.",
+   "to": "Entryway shoe rack."
+  }
+ },
+ "objects": [
+  {
+   "name": "Shoes",
+   "role": "Items to be returned to rack",
+   "kinds": [
+    "sneakers",
+    "sandals",
+    "boots"
+   ],
+   "quote": "Items: 1\u20133 pairs of shoes (sneakers, sandals, boots)."
+  },
+  {
+   "name": "Shoe rack",
+   "role": "Target location for storing shoes",
+   "kinds": [],
+   "quote": "To: Entryway shoe rack."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "1\u20133 pairs of shoes are present in the scene.",
+   "quote": "Items: 1\u20133 pairs of shoes (sneakers, sandals, boots)."
+  },
+  {
+   "fact": "Shoes are randomly placed on the entryway floor in varied positions.",
+   "quote": "Position: Randomly placed on the entryway floor in varied positions."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the shoes and stand still for 1 second.",
+   "quote": "1. Walk to the shoes and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Pick up 1 shoe (or hold a matched pair together).",
+   "quote": "2. Pick up 1 shoe (or hold a matched pair together)."
+  },
+  {
+   "number": 3,
+   "text": "Walk to the rack and stop for 1 second.",
+   "quote": "3. Walk to the rack and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Place the shoe(s) flat on an open shelf with the toe pointing inward, side-by-side with no overlap.",
+   "quote": "4. Place the shoe(s) flat on an open shelf with the toe pointing inward, side-by-side with no overlap."
+  }
+ ],
+ "repeat": {
+  "present": false,
+  "step_numbers": [],
+  "unit": "",
+  "end_condition": "",
+  "count": "",
+  "quote": ""
+ },
+ "acceptance": [
+  {
+   "step_number": 4,
+   "criterion": "The shoe(s) must be placed flat on an open shelf.",
+   "quote": "flat on an open shelf"
+  },
+  {
+   "step_number": 4,
+   "criterion": "The shoe(s) must be placed with the toe pointing inward.",
+   "quote": "with the toe pointing inward"
+  },
+  {
+   "step_number": 4,
+   "criterion": "The shoe(s) must be placed side-by-side with no overlap.",
+   "quote": "side-by-side with no overlap"
+  }
+ ],
+ "constraints": [
+  {
+   "rule": "Do not throw shoes onto rack.",
+   "step_numbers": [
+    4
+   ],
+   "violation_looks_like": "Shoes are tossed, thrown, or dropped from a distance onto the rack instead of being set down flat by hand.",
+   "quote": "Constraints / Avoid: Do not throw shoes onto rack."
+  }
+ ],
+ "not_modelled": [
+  {
+   "reason": "Instruction about resetting between episodes.",
+   "quote": "Reset: Randomize placement, shoe types, and positions each episode."
+  },
+  {
+   "reason": "Instruction about variations to collect across the data set.",
+   "quote": "Diversity: Vary shoe types (sneakers, sandals, boots). Change positions on floor. Use different rack shelf/slot. Alternate left vs. right hand pickup."
+  }
+ ]
+}

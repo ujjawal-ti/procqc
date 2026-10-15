@@ -1,0 +1,127 @@
+{
+ "scenario": {
+  "activity_type": "",
+  "site_id": "",
+  "location": "bedroom/closet",
+  "scene_type": "bedroom",
+  "country": "",
+  "quote": "From: Bedroom floor / chair.",
+  "other": {
+   "name": "Return dirty clothes from bedroom floor or chair to hamper",
+   "destination": "Laundry hamper in bedroom/closet."
+  }
+ },
+ "objects": [
+  {
+   "name": "clothing",
+   "role": "dirty items to be picked up and put away",
+   "kinds": [
+    "shirts",
+    "pants",
+    "socks"
+   ],
+   "quote": "Clothing."
+  },
+  {
+   "name": "laundry hamper",
+   "role": "container to hold dirty clothes",
+   "kinds": [],
+   "quote": "To: Laundry hamper in bedroom/closet."
+  },
+  {
+   "name": "chair",
+   "role": "surface where clothes may be placed",
+   "kinds": [],
+   "quote": "Position: On the floor and/or draped on a chair."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "There are approximately 5 to 10 clothing items present.",
+   "quote": "Items: ~5-10 clothing items."
+  },
+  {
+   "fact": "Clothing items are positioned on the floor and/or draped over a chair.",
+   "quote": "Position: On the floor and/or draped on a chair."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the clothes and stand still for 1 second.",
+   "quote": "Walk to the clothes and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Start with arms in a neutral position. Pick up 1\u20132 items with one hand using a full-palm grasp.",
+   "quote": "Start with arms in a neutral position. Pick up 1\u20132 items with one hand using a full-palm grasp."
+  },
+  {
+   "number": 3,
+   "text": "Walk to the hamper and stop for 1 second.",
+   "quote": "Walk to the hamper and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Hold items over the hamper opening and release them inside.",
+   "quote": "Hold items over the hamper opening and release them inside."
+  }
+ ],
+ "repeat": {
+  "present": false,
+  "step_numbers": [],
+  "unit": "",
+  "end_condition": "",
+  "count": "",
+  "quote": ""
+ },
+ "acceptance": [
+  {
+   "step_number": 4,
+   "criterion": "The picked-up items are released inside the hamper.",
+   "quote": "release them inside."
+  }
+ ],
+ "constraints": [
+  {
+   "rule": "Do not overstuff hamper.",
+   "step_numbers": [
+    4
+   ],
+   "violation_looks_like": "Clothes are packed excessively into the hamper such that it overflows or items spill out over the rim.",
+   "quote": "Do not overstuff hamper."
+  },
+  {
+   "rule": "Do not knock over furniture.",
+   "step_numbers": [],
+   "violation_looks_like": "A chair or other piece of furniture is tipped over, destabilized, or falls to the floor.",
+   "quote": "Do not knock over furniture."
+  },
+  {
+   "rule": "Start step 2 with arms in a neutral position.",
+   "step_numbers": [
+    2
+   ],
+   "violation_looks_like": "The person approaches or begins grasping while arms are already extended, raised, or not resting in a neutral position.",
+   "quote": "Start with arms in a neutral position."
+  },
+  {
+   "rule": "Pick up 1\u20132 items with one hand using a full-palm grasp.",
+   "step_numbers": [
+    2
+   ],
+   "violation_looks_like": "More than 2 items are picked up, two hands are used, or items are pinched with fingertips rather than grasped with a full palm.",
+   "quote": "Pick up 1\u20132 items with one hand using a full-palm grasp."
+  }
+ ],
+ "not_modelled": [
+  {
+   "reason": "Instruction about dataset reset between recordings.",
+   "quote": "Reset: Randomize item positions and types each episode. Vary hamper location (bedroom vs. closet)."
+  },
+  {
+   "reason": "Instruction about variations to apply across recordings in the dataset.",
+   "quote": "Diversity: Vary item types (shirts, pants, socks). Vary positions (floor vs. chair vs. bed edge). Vary number of items (1\u20133). Vary hamper location (bedroom vs. closet)."
+  }
+ ]
+}

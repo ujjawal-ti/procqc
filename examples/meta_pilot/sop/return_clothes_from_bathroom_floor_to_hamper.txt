@@ -1,0 +1,24 @@
+Name: Return clothes from bathroom floor to hamper
+
+Description:
+Objects:
+Clothes.
+
+From: Bathroom floor / behind door.
+To: Laundry hamper in bathroom/hallway.
+
+Starting State:
+
+Items: 1–3 clothing items (towels, shirts, socks).
+Position: On the floor or draped behind the door in random positions.
+Reset: Randomize positions and item types each episode.
+
+Constraints / Avoid: Prohibited Objects: No wet or soiled items. Prohibited Actions: Do not overstuff hamper. Do not drag items on floor.
+
+Steps:
+1. Walk to the clothes and stand still for 1 second.
+2. Start with arms in a neutral position. Pick up 1–2 items with one hand using a full-palm grasp.
+3. Walk to the hamper and stop for 1 second.
+4. Hold items over the hamper opening and release them inside.
+
+Diversity: Vary item types (towels, shirts, socks). Change positions (floor vs. behind door). Vary the number of items (1–3). Change hamper location (bathroom vs. hallway).

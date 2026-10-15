@@ -1,0 +1,25 @@
+Name: Return coasters from tables to holder
+
+Description:
+Objects:
+Coasters.
+
+From: Scattered on coffee/side tables.
+To: Coaster holder / stacked neatly.
+
+Starting State:
+
+Items: 3-5 coasters.
+Position: Scattered across different tables (coffee table, side tables).
+Reset: Vary coaster materials and positions each episode.
+
+Constraints / Avoid: Do not slide coasters off table edges. Do not stack carelessly (align neatly).
+
+Steps:
+1. Walk to the table and stand still for 1 second.
+2. Start with arms in a neutral position. Pick up 1 coaster at a time using a thumb-and-forefinger pinch grip across opposite ends.
+3. (If walking, otherwise skip if stationary) Walk to the holder or stack spot and stop for 1 second.
+4. Place the coaster flat on the holder/stack with edges aligned to the coaster underneath.
+5. Gently nudge the coaster into place to adjust alignment.
+
+Diversity: Vary coaster materials (wood, cork, stone). Change positions across different tables (coffee table, side tables). Vary number of coasters (2–4).

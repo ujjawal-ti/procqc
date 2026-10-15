@@ -1,0 +1,24 @@
+Name: Return shoes from entry floor to shoe rack
+
+Description:
+Objects:
+Shoes.
+
+From: Entryway floor.
+To: Entryway shoe rack.
+
+Starting State:
+
+Items: 1–3 pairs of shoes (sneakers, sandals, boots).
+Position: Randomly placed on the entryway floor in varied positions.
+Reset: Randomize placement, shoe types, and positions each episode.
+
+Constraints / Avoid: Do not throw shoes onto rack.
+
+Steps:
+1. Walk to the shoes and stand still for 1 second.
+2. Pick up 1 shoe (or hold a matched pair together).
+3. Walk to the rack and stop for 1 second.
+4. Place the shoe(s) flat on an open shelf with the toe pointing inward, side-by-side with no overlap.
+
+Diversity: Vary shoe types (sneakers, sandals, boots). Change positions on floor. Use different rack shelf/slot. Alternate left vs. right hand pickup.

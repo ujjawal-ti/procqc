@@ -226,6 +226,50 @@ WRONGTOOL_RELATION_SYSTEM = """You classify, for procedural quality control, how
 - "different": another item altogether, including a bare hand or gripper where an object fills the role.
 Return ONLY JSON: {"relation": "<one of the above>", "reason": "<one sentence>"}"""
 
+# termination v2 (procqc.judges.termination_v2): goal state at the declared end moment, three item rules
+TERMINATION_V2_SYSTEM = """You are a quality-control reviewer checking whether a recorded demonstration achieved its task goal. You see the whole recording from a camera worn by the person, the task items, where they start and where they must end up, how many items the procedure stages, and numbered goal conditions. You are told the END MOMENT: the time the person declares the task done. Judge the state of the task at the END MOMENT.
+
+The camera moves with the person, so an item out of view at the end moment is not evidence that it is missing or left behind: use the whole recording to follow each item from where it is first seen to where it is last put down.
+
+1. items: list each task item you can identify over the recording (a short visual description that tells it apart from the others), where it is first seen, the time it is last put down or last seen, and its place at the END MOMENT: "at_destination", "not_at_destination" (seen somewhere other than the destination at or after its last handling), or "unknown" (not seen well enough to tell). Include items that are never handled. Do not invent items you have not seen.
+2. conditions: for each goal condition, answer "met", "not_met" or "not_visible", with the evidence and the time in seconds it rests on. Answer "not_met" only when what you see contradicts the condition; answer "not_visible" when the recording never shows it well enough to tell.
+3. still_working: is the person still handling a task item at the END MOMENT?
+4. end_state: 2-4 sentences on where the task items are at the END MOMENT.
+Judge only what is visible.
+Return ONLY JSON: {"items": [{"item": "<description>", "first_seen": "<place>", "last_handled_s": <number or null>, "at_end": "at_destination|not_at_destination|unknown"}], "conditions": [{"id": "C1", "answer": "met|not_met|not_visible", "evidence": "<what you see>", "time_s": <number or null>}], "still_working": true|false, "end_state": "<2-4 sentences>"}"""
+
+TERMINATION_V2_SPLIT_SYSTEM = TERMINATION_V2_SYSTEM.replace(
+    """and its place at the END MOMENT: "at_destination", "not_at_destination" (seen somewhere other than the destination at or after its last handling), or "unknown" (not seen well enough to tell).""",
+    """its place at the END MOMENT: "at_destination", "at_starting_place" (never moved, or put back where it started), "elsewhere" (moved, but put down somewhere that is neither the starting place nor the destination), or "unknown" (not seen well enough to tell), and end_place: where it is at the END MOMENT, in a few words.""").replace(
+    '"at_end": "at_destination|not_at_destination|unknown"}',
+    '"at_end": "at_destination|at_starting_place|elsewhere|unknown", "end_place": "<place>"}')
+assert TERMINATION_V2_SPLIT_SYSTEM != TERMINATION_V2_SYSTEM and "end_place" in TERMINATION_V2_SPLIT_SYSTEM
+
+# split_id: split plus whether each item is plainly one of the task items
+TERMINATION_V2_SPLIT_ID_SYSTEM = TERMINATION_V2_SPLIT_SYSTEM.replace(
+    "Include items that are never handled. Do not invent items you have not seen.",
+    "Include items that are never handled. Do not invent items you have not seen. For each item give identity: "
+    "\"clear\" when it is plainly one of the TASK ITEMS, \"uncertain\" when it only resembles one, or may be part of "
+    "another object or something that is not a task item.").replace(
+    '"end_place": "<place>"}', '"end_place": "<place>", "identity": "clear|uncertain"}')
+assert TERMINATION_V2_SPLIT_ID_SYSTEM != TERMINATION_V2_SPLIT_SYSTEM and '"identity"' in TERMINATION_V2_SPLIT_ID_SYSTEM
+
+# gestural anchoring (procqc.signals.gesture_verify). Templates: {which} = start|end, {where} = beginning|end.
+GESTURE_SYSTEM = """You check a recording from a camera worn by a person for its {which} signal: two thumbs up in the camera view, both hands visible, each with the thumb extended and pointing up and the other fingers closed. You see frames in time order from the {where} of the recording.
+Answer from what is visible:
+- signal: "two_thumbs_up" when at least one frame shows both hands giving a thumbs-up; "one_thumb_up" when only one hand gives it; "none" when no frame shows a thumbs-up; "unclear" when the hands are not visible well enough to tell.
+- frames: the times (s) of the frames that show it.
+- evidence: one sentence on what the hands are doing.
+Return ONLY JSON: {{"signal": "two_thumbs_up|one_thumb_up|none|unclear", "frames": [<seconds>], "evidence": "<sentence>"}}"""
+
+GESTURE_V2_SYSTEM = GESTURE_SYSTEM.replace(
+    '"none" when no frame shows a thumbs-up;',
+    '"other_signal" when the hands are raised in a deliberate signal toward the camera but it is not a clear upright '
+    'thumbs-up; "none" when no frame shows a deliberate hand signal at all;').replace(
+    '"signal": "two_thumbs_up|one_thumb_up|none|unclear"', '"signal": "two_thumbs_up|one_thumb_up|other_signal|none|unclear"')
+assert GESTURE_V2_SYSTEM != GESTURE_SYSTEM and "other_signal" in GESTURE_V2_SYSTEM
+
+
 # ------------------------------------------------------------------------------------------
 # registry
 # ------------------------------------------------------------------------------------------
@@ -246,6 +290,11 @@ PROMPTS: Dict[str, Prompt] = {p.name: p for p in (
     Prompt("wrongtool.locate.system", "1", WRONGTOOL_LOCATE_SYSTEM, "procqc.judges.wrongtool"),
     Prompt("wrongtool.identify.system", "1", WRONGTOOL_IDENTIFY_SYSTEM, "procqc.judges.wrongtool"),
     Prompt("wrongtool.relation.system", "1", WRONGTOOL_RELATION_SYSTEM, "procqc.judges.wrongtool"),
+    Prompt("termination_v2.merged.system", "1", TERMINATION_V2_SYSTEM, "procqc.judges.termination_v2"),
+    Prompt("termination_v2.split.system", "1", TERMINATION_V2_SPLIT_SYSTEM, "procqc.judges.termination_v2"),
+    Prompt("termination_v2.split_id.system", "1", TERMINATION_V2_SPLIT_ID_SYSTEM, "procqc.judges.termination_v2"),
+    Prompt("gesture.verify.system", "1", GESTURE_SYSTEM, "procqc.signals.gesture_verify"),
+    Prompt("gesture.verify_v2.system", "1", GESTURE_V2_SYSTEM, "procqc.signals.gesture_verify"),
 )}
 
 

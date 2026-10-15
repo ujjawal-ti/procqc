@@ -26,6 +26,10 @@ venv/
 .pytest_cache/
 .ruff_cache/
 
+# notebooks (exploration only; saved outputs can carry data and signed links)
+*.ipynb
+.ipynb_checkpoints/
+
 # os / editors
 .DS_Store
 .idea/

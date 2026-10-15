@@ -1,0 +1,24 @@
+Name: Return pet bed to designated spot
+
+Description:
+Objects:
+Pet bed.
+
+From: Sofa / floor.
+To: Designated pet bed spot in the living room.
+
+Starting State:
+
+Items: 1 pet bed.
+Position: On the sofa or a random floor location away from its designated spot.
+Reset: Vary starting position and orientation each episode.
+
+Constraints / Avoid: None specified.
+
+Steps:
+1. Walk to the pet bed and stand still for 1 second.
+2. Start with arms in a neutral position. Pick up the bed with both hands gripping opposite edges.
+3. Walk to the designated floor spot and stop for 1 second.
+4. Lower the bed flat onto the floor so it rests without folding.
+
+Diversity: Vary pet bed size. Change starting position (sofa vs. random floor location). Vary orientation. Use one-hand vs. two-hand grip based on bed size.

@@ -21,6 +21,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
+internal = ["boto3", "psycopg[binary]"]
 
 [tool.setuptools.packages.find]
 include = ["procqc*"]
@@ -31,3 +32,4 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 130
 target-version = "py39"
+extend-exclude = ["docs"]  # page-build scripts there run on a newer Python, outside the package

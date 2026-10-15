@@ -1,0 +1,129 @@
+{
+ "scenario": {
+  "activity_type": "",
+  "site_id": "",
+  "location": "",
+  "scene_type": "",
+  "country": "",
+  "quote": "Name: Return dishware from dining table to sink",
+  "other": {
+   "Name": "Return dishware from dining table to sink",
+   "From": "Dining table.",
+   "To": "Kitchen sink."
+  }
+ },
+ "objects": [
+  {
+   "name": "Dishes",
+   "role": "items to be returned to the sink",
+   "kinds": [
+    "plates",
+    "bowls",
+    "cutlery"
+   ],
+   "quote": "Dishes (plates, bowls, cutlery)."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "Dishware (plates, bowls, cutlery/utensils) are the items involved.",
+   "quote": "Items: Dishware (plates, bowls, cutlery/utensils)."
+  },
+  {
+   "fact": "Items are randomly placed on the dining table in varied positions and orientations.",
+   "quote": "Position: Randomly placed on the dining table in varied positions and orientations."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the table and stand still for 1 second.",
+   "quote": "1. Walk to the table and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Start with arms in a neutral position. Pick up 1 plate or bowl at a time (gather 2\u20133 utensils together).",
+   "quote": "2. Start with arms in a neutral position. Pick up 1 plate or bowl at a time (gather 2\u20133 utensils together)."
+  },
+  {
+   "number": 3,
+   "text": "Walk to the sink and stop for 1 second.",
+   "quote": "3. Walk to the sink and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Lower the item flat into the sink basin. Return arms to a neutral position.",
+   "quote": "4. Lower the item flat into the sink basin. Return arms to a neutral position."
+  },
+  {
+   "number": 5,
+   "text": "Repeat for each dish; group 2\u20133 utensils in one hand between trips.",
+   "quote": "5. Repeat for each dish; group 2\u20133 utensils in one hand between trips."
+  }
+ ],
+ "repeat": {
+  "present": true,
+  "step_numbers": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "unit": "each dish; group 2\u20133 utensils in one hand",
+  "end_condition": "all dishes have been returned to the sink",
+  "count": "",
+  "quote": "Repeat for each dish; group 2\u20133 utensils in one hand between trips."
+ },
+ "acceptance": [
+  {
+   "step_number": 4,
+   "criterion": "The item is lowered flat into the sink basin.",
+   "quote": "flat into the sink basin."
+  },
+  {
+   "step_number": 4,
+   "criterion": "Arms are returned to a neutral position.",
+   "quote": "Return arms to a neutral position."
+  }
+ ],
+ "constraints": [
+  {
+   "rule": "Do not rush \u2014 place items carefully into the sink.",
+   "step_numbers": [
+    4
+   ],
+   "violation_looks_like": "The person moves hastily, throwing, dropping, or slamming items carelessly into the sink.",
+   "quote": "Constraints / Avoid: Do not rush \u2014 place items carefully into the sink."
+  }
+ ],
+ "not_modelled": [
+  {
+   "reason": "Instruction for resetting the data collection setup between episodes.",
+   "quote": "Reset: Randomize placement, number, and type of dishware after each episode."
+  },
+  {
+   "reason": "Data collection diversity instruction.",
+   "quote": "Diversity: Vary the number of items."
+  },
+  {
+   "reason": "Data collection diversity instruction.",
+   "quote": "Switch between plates, bowls, and silverware."
+  },
+  {
+   "reason": "Data collection diversity instruction.",
+   "quote": "Alternate using your left or right hand to pick items up."
+  },
+  {
+   "reason": "Data collection diversity instruction.",
+   "quote": "Change item positions and table settings."
+  },
+  {
+   "reason": "Data collection diversity instruction.",
+   "quote": "Mix plate sizes (dinner, salad, bowl)."
+  },
+  {
+   "reason": "Data collection diversity instruction.",
+   "quote": "Swap dish set every session."
+  }
+ ]
+}

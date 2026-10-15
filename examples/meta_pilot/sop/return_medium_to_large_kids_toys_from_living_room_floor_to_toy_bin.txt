@@ -1,0 +1,24 @@
+Name: Return medium to large kids toys from living room floor to toy bin
+
+Description:
+Objects:
+Kids toys (blocks, cars, plush toys, etc.) (avoid small parts or items that require fine manipulation).
+
+From: Floor / sofa.
+To: Toy bin.
+
+Starting State:
+
+Items: 3–5 larger kids toys (blocks, cars, plush toys).
+Position: Scattered on the floor and sofa.
+Reset: Randomize positions each episode.
+
+Constraints / Avoid: Prohibited Objects: Small parts or items requiring fine manipulation. Prohibited Actions: Do not throw toys. Do not overfill bin.
+
+Steps:
+1. Walk to the toy and stand still for 1 second.
+2. Start with arms in a neutral position. Pick up 1 large toy with both hands, or gather 2–3 small ones in one hand.
+3. Walk to the bin and stop for 1 second.
+4. Hold item(s) over the bin opening and release.
+
+Diversity: Vary toy types (blocks, cars, plush). Change positions (floor vs. sofa). Vary number of items (3–5).

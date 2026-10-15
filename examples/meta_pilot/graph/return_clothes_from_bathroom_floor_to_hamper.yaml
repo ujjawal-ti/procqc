@@ -1,0 +1,434 @@
+task_id: return_clothes_from_bathroom_floor_to_hamper
+name: Return clothes from bathroom floor to hamper
+version: 0.1.0
+domain: household
+description: Return clothes from bathroom floor to hamper
+objects:
+- id: clothes
+  name: clothes
+  category: part
+  aliases:
+  - clothes
+  - towels
+  - shirts
+  - socks
+  substitutes: []
+  hazards: []
+  kinds:
+  - towels
+  - shirts
+  - socks
+  source:
+    quote: Clothes.
+    inferred: false
+- id: hamper
+  name: hamper
+  category: container
+  aliases:
+  - laundry hamper
+  - hamper
+  substitutes: []
+  hazards: []
+  kinds: []
+  source:
+    quote: 'To: Laundry hamper in bathroom/hallway.'
+    inferred: false
+initial_state:
+- name: IsPresent
+  args:
+  - clothes
+  value: true
+  checker: detector
+  scope: global
+- name: OnFloorOrBehindDoor
+  args:
+  - clothes
+  value: true
+  checker: vlm_effect
+  scope: global
+- name: InHamper
+  args:
+  - clothes
+  - hamper
+  value: false
+  checker: vlm_effect
+  scope: cumulative
+goal:
+- name: InHamper
+  args:
+  - clothes
+  - hamper
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+nodes:
+- id: start
+  name: start
+  kind: start
+  description: Start node
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Initial state before task begins.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+- id: s01_walk_to_clothes
+  name: walk_to_clothes
+  kind: step
+  description: Walk to the clothes and stand still for 1 second.
+  preconditions: []
+  effects:
+  - name: AtLocation
+    args:
+    - clothes
+    value: true
+    checker: proprio_pose
+    scope: global
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - clothes
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Person has reached the clothes and stood still for 1 second.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: Walk to the clothes and stand still for 1 second.
+    inferred: false
+- id: s02_pick_up_items
+  name: pick_up_items
+  kind: step
+  description: Start with arms in a neutral position. Pick up 1–2 items with one hand using a full-palm
+    grasp.
+  preconditions:
+  - name: AtLocation
+    args:
+    - clothes
+    value: true
+    checker: proprio_pose
+    scope: global
+  effects:
+  - name: IsGrasped
+    args:
+    - clothes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - clothes
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: 1–2 clothing items are picked up in one hand with a full-palm grasp.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: Start with arms in a neutral position. Pick up 1–2 items with one hand using a full-palm grasp.
+    inferred: false
+- id: s03_walk_to_hamper
+  name: walk_to_hamper
+  kind: step
+  description: Walk to the hamper and stop for 1 second.
+  preconditions:
+  - name: IsGrasped
+    args:
+    - clothes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: AtLocation
+    args:
+    - hamper
+    value: true
+    checker: proprio_pose
+    scope: global
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - hamper
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Person has walked to the hamper and stopped for 1 second while holding the clothes.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: Walk to the hamper and stop for 1 second.
+    inferred: false
+- id: s04_release_into_hamper
+  name: release_into_hamper
+  kind: step
+  description: Hold items over the hamper opening and release them inside.
+  preconditions:
+  - name: AtLocation
+    args:
+    - hamper
+    value: true
+    checker: proprio_pose
+    scope: global
+  - name: IsGrasped
+    args:
+    - clothes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: InHamper
+    args:
+    - clothes
+    - hamper
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: IsGrasped
+    args:
+    - clothes
+    value: false
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: true
+  permitted_repeats: 999
+  target_objects:
+  - clothes
+  - hamper
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Items are released inside the hamper.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: Hold items over the hamper opening and release them inside.
+    inferred: false
+- id: end
+  name: end
+  kind: end
+  description: End node
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: All clothes have been returned to the hamper.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+edges:
+- source: start
+  target: s01_walk_to_clothes
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s01_walk_to_clothes
+  target: s02_pick_up_items
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_items
+  target: s03_walk_to_hamper
+  relation: PROVIDES_INPUT_FOR
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s03_walk_to_hamper
+  target: s04_release_into_hamper
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s04_release_into_hamper
+  target: end
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+provenance:
+  source: llm_draft_v2
+  model: gemini-3.8-flash
+  created_at: '2026-10-12T05:34:50+00:00'
+  notes:
+  - 2 lint warnings at acceptance
+  - 0 inferred elements
+  - usd=0.0961
+metadata: {}
+schema_version: '2'
+scenario:
+  activity_type: ''
+  site_id: ''
+  location: ''
+  scene_type: ''
+  country: ''
+  other:
+    Name: Return clothes from bathroom floor to hamper
+    From: Bathroom floor / behind door.
+    To: Laundry hamper in bathroom/hallway.
+  source:
+    quote: 'Name: Return clothes from bathroom floor to hamper'
+    inferred: false
+starting_state:
+- description: 1–3 clothing items (towels, shirts, socks) are present.
+  objects:
+  - clothes
+  predicates:
+  - name: IsPresent
+    args:
+    - clothes
+    value: true
+    checker: detector
+    scope: global
+  source:
+    quote: 'Items: 1–3 clothing items (towels, shirts, socks).'
+    inferred: false
+- description: Clothing items are located on the floor or draped behind the door in random positions.
+  objects:
+  - clothes
+  predicates:
+  - name: OnFloorOrBehindDoor
+    args:
+    - clothes
+    value: true
+    checker: vlm_effect
+    scope: global
+  source:
+    quote: 'Position: On the floor or draped behind the door in random positions.'
+    inferred: false
+repeat_blocks:
+- id: rb01
+  steps:
+  - s01_walk_to_clothes
+  - s02_pick_up_items
+  - s03_walk_to_hamper
+  - s04_release_into_hamper
+  unit: 1–2 items
+  objects:
+  - clothes
+  until:
+  - name: InHamper
+    args:
+    - clothes
+    - hamper
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  until_description: All clothing items are in the hamper.
+  count_hint: 1–3
+  source:
+    quote: Pick up 1–2 items with one hand using a full-palm grasp.
+    inferred: false
+acceptance:
+- id: acc01
+  step: s04_release_into_hamper
+  objects:
+  - clothes
+  - hamper
+  criterion: The items are released inside the hamper.
+  predicate:
+    name: InHamper
+    args:
+    - clothes
+    - hamper
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: release them inside
+    inferred: false
+constraints:
+- id: c01
+  rule: No wet or soiled items may be handled.
+  applies_to:
+  - '*'
+  violation_looks_like: A person handles or collects an item that is wet or visibly stained/soiled.
+  taxonomy: violation
+  source:
+    quote: No wet or soiled items.
+    inferred: false
+- id: c02
+  rule: Do not overstuff the hamper.
+  applies_to:
+  - s04_release_into_hamper
+  violation_looks_like: Clothes are forced into an already full hamper or are overflowing above the rim.
+  taxonomy: violation
+  source:
+    quote: Do not overstuff hamper.
+    inferred: false
+- id: c03
+  rule: Do not drag items on the floor.
+  applies_to:
+  - s02_pick_up_items
+  - s03_walk_to_hamper
+  violation_looks_like: A piece of clothing contacts the floor and is pulled along the surface while being
+    moved.
+  taxonomy: violation
+  source:
+    quote: Do not drag items on floor.
+    inferred: false
+- id: c04
+  rule: Start the pick-up action with arms in a neutral position.
+  applies_to:
+  - s02_pick_up_items
+  violation_looks_like: The person begins the reach with arms pre-raised, bent, or not resting neutrally.
+  taxonomy: violation
+  source:
+    quote: Start with arms in a neutral position.
+    inferred: false
+- id: c05
+  rule: Pick up items using one hand with a full-palm grasp.
+  applies_to:
+  - s02_pick_up_items
+  violation_looks_like: The person uses two hands or holds the clothing using only fingertips or a pinch
+    grip.
+  taxonomy: violation
+  source:
+    quote: with one hand using a full-palm grasp
+    inferred: false
+not_modelled:
+- quote: 'Reset: Randomize positions and item types each episode.'
+  reason: Dataset collection reset instructions.
+- quote: Vary item types (towels, shirts, socks).
+  reason: Dataset collection diversity instruction regarding item types.
+- quote: Change positions (floor vs. behind door).
+  reason: Dataset collection diversity instruction regarding positions.
+- quote: Vary the number of items (1–3).
+  reason: Dataset collection diversity instruction regarding item count.
+- quote: Change hamper location (bathroom vs. hallway).
+  reason: Dataset collection diversity instruction regarding hamper location.

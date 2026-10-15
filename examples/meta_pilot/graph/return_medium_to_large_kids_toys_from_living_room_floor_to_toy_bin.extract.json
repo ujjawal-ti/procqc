@@ -1,0 +1,127 @@
+{
+ "scenario": {
+  "activity_type": "",
+  "site_id": "",
+  "location": "",
+  "scene_type": "",
+  "country": "",
+  "quote": "Name: Return medium to large kids toys from living room floor to toy bin",
+  "other": {
+   "name": "Return medium to large kids toys from living room floor to toy bin"
+  }
+ },
+ "objects": [
+  {
+   "name": "Kids toys",
+   "role": "items to be returned to the toy bin",
+   "kinds": [
+    "blocks",
+    "cars",
+    "plush toys"
+   ],
+   "quote": "Kids toys (blocks, cars, plush toys, etc.) (avoid small parts or items that require fine manipulation)."
+  },
+  {
+   "name": "Floor / sofa",
+   "role": "source location",
+   "kinds": [],
+   "quote": "From: Floor / sofa."
+  },
+  {
+   "name": "Toy bin",
+   "role": "destination container",
+   "kinds": [],
+   "quote": "To: Toy bin."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "There are 3\u20135 larger kids toys (blocks, cars, plush toys).",
+   "quote": "Items: 3\u20135 larger kids toys (blocks, cars, plush toys)."
+  },
+  {
+   "fact": "Toys are scattered on the floor and sofa.",
+   "quote": "Position: Scattered on the floor and sofa."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the toy and stand still for 1 second.",
+   "quote": "1. Walk to the toy and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Start with arms in a neutral position. Pick up 1 large toy with both hands, or gather 2\u20133 small ones in one hand.",
+   "quote": "2. Start with arms in a neutral position. Pick up 1 large toy with both hands, or gather 2\u20133 small ones in one hand."
+  },
+  {
+   "number": 3,
+   "text": "Walk to the bin and stop for 1 second.",
+   "quote": "3. Walk to the bin and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Hold item(s) over the bin opening and release.",
+   "quote": "4. Hold item(s) over the bin opening and release."
+  }
+ ],
+ "repeat": {
+  "present": true,
+  "step_numbers": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "unit": "1 large toy or 2\u20133 small ones",
+  "end_condition": "all 3\u20135 larger kids toys are returned to the toy bin",
+  "count": "3\u20135",
+  "quote": "Items: 3\u20135 larger kids toys (blocks, cars, plush toys)."
+ },
+ "acceptance": [],
+ "constraints": [
+  {
+   "rule": "Avoid small parts or items that require fine manipulation.",
+   "step_numbers": [
+    2
+   ],
+   "violation_looks_like": "The person picks up or handles small parts or items requiring fine manipulation.",
+   "quote": "avoid small parts or items that require fine manipulation"
+  },
+  {
+   "rule": "Small parts or items requiring fine manipulation are prohibited.",
+   "step_numbers": [
+    2
+   ],
+   "violation_looks_like": "Small parts or items requiring fine manipulation are present and being manipulated.",
+   "quote": "Prohibited Objects: Small parts or items requiring fine manipulation."
+  },
+  {
+   "rule": "Do not throw toys.",
+   "step_numbers": [
+    4
+   ],
+   "violation_looks_like": "The person tosses or throws a toy towards or into the bin.",
+   "quote": "Do not throw toys."
+  },
+  {
+   "rule": "Do not overfill bin.",
+   "step_numbers": [
+    4
+   ],
+   "violation_looks_like": "The bin is filled beyond its rim or capacity so items spill or stick out excessively.",
+   "quote": "Do not overfill bin."
+  }
+ ],
+ "not_modelled": [
+  {
+   "reason": "Reset instructions between recordings",
+   "quote": "Reset: Randomize positions each episode."
+  },
+  {
+   "reason": "Diversity guidance for collecting dataset variations",
+   "quote": "Diversity: Vary toy types (blocks, cars, plush). Change positions (floor vs. sofa). Vary number of items (3\u20135)."
+  }
+ ]
+}

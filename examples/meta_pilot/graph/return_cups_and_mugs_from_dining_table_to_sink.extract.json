@@ -1,0 +1,115 @@
+{
+ "scenario": {
+  "activity_type": "Return cups and mugs from dining table to sink",
+  "site_id": "",
+  "location": "",
+  "scene_type": "",
+  "country": "",
+  "quote": "Name: Return cups and mugs from dining table to sink",
+  "other": {
+   "From": "Dining table.",
+   "To": "Kitchen sink."
+  }
+ },
+ "objects": [
+  {
+   "name": "cups and mugs",
+   "role": "items moved from table to sink",
+   "kinds": [
+    "Cups",
+    "mugs"
+   ],
+   "quote": "Cups, mugs."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "There are 3\u20135 cups or mugs.",
+   "quote": "Items: 3\u20135 cups or mugs."
+  },
+  {
+   "fact": "The items are placed at random positions on the dining table.",
+   "quote": "Position: Random positions on the dining table."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the table and stand still for 1 second.",
+   "quote": "1. Walk to the table and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Start with arms in a neutral position. Pick up 1 cup by the handle.",
+   "quote": "2. Start with arms in a neutral position. Pick up 1 cup by the handle."
+  },
+  {
+   "number": 3,
+   "text": "Walk to the sink and stop for 1 second.",
+   "quote": "3. Walk to the sink and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Place the cup upright inside the sink basin. Return arms to a neutral position.",
+   "quote": "4. Place the cup upright inside the sink basin. Return arms to a neutral position."
+  },
+  {
+   "number": 5,
+   "text": "Repeat for remaining cups (1 at a time).",
+   "quote": "5. Repeat for remaining cups (1 at a time)."
+  }
+ ],
+ "repeat": {
+  "present": true,
+  "step_numbers": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "unit": "1 cup at a time",
+  "end_condition": "all remaining cups have been returned",
+  "count": "3\u20135 cups or mugs",
+  "quote": "5. Repeat for remaining cups (1 at a time)."
+ },
+ "acceptance": [
+  {
+   "step_number": 2,
+   "criterion": "The cup is picked up by its handle.",
+   "quote": "Pick up 1 cup by the handle."
+  },
+  {
+   "step_number": 4,
+   "criterion": "The cup is resting upright inside the sink basin.",
+   "quote": "Place the cup upright inside the sink basin."
+  },
+  {
+   "step_number": 4,
+   "criterion": "Arms are returned to a neutral position.",
+   "quote": "Return arms to a neutral position."
+  }
+ ],
+ "constraints": [],
+ "not_modelled": [
+  {
+   "reason": "Explicitly specifies no constraints or avoidance rules.",
+   "quote": "Constraints / Avoid: None specified."
+  },
+  {
+   "reason": "Instruction for resetting between recording episodes.",
+   "quote": "Reset: Vary placement and orientation each episode."
+  },
+  {
+   "reason": "Data collection diversity variations across recordings.",
+   "quote": "Diversity: Mix up coffee mugs, ceramic cups, plastic cups, with/without handles. Vary positions across the table. Change handle orientation each time. Switch between left- and right-handed pickups."
+  },
+  {
+   "reason": "Durations and wait times are checked separately.",
+   "quote": "stand still for 1 second"
+  },
+  {
+   "reason": "Durations and wait times are checked separately.",
+   "quote": "stop for 1 second"
+  }
+ ]
+}

@@ -1,0 +1,24 @@
+Name: Arrange throw pillows neatly on couch
+
+Description:
+Objects:
+Throw pillows / cushions.
+
+From: Floor / scattered on furniture.
+To: Arranged on couch.
+
+Starting State:
+
+Items: 2–4 throw pillows.
+Position: Scattered on the floor and/or other furniture.
+Reset: Randomize starting positions each episode; vary pillow sizes and shapes.
+
+Constraints / Avoid: Do not throw pillows onto couch.
+
+Steps:
+1. Walk to the pillow and stand still for 1 second.
+2. Start with arms in a neutral position. Pick up the pillow with both hands gripping the center.
+3. Walk to the sofa and stop for 1 second.
+4. Place the pillow against the sofa arm or backrest, then release (the pillow should lean without falling).
+
+Diversity: Vary pillow sizes and shapes. Change starting positions (floor vs. other furniture). Vary number of pillows (2–4). Change arrangement style on couch.

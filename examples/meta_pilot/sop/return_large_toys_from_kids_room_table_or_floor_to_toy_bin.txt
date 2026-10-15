@@ -1,0 +1,25 @@
+Name: Return large toys from kids room table or floor to toy bin
+
+Description:
+Objects:
+Toys (blocks, cars, dolls, plushies, etc.).
+
+From: Kids room floor.
+To: Toy bin / basket.
+
+Starting State:
+
+Items: 3–6 toys.
+Position: Randomly scattered on the floor and/or table.
+Reset: Randomize positions each episode.
+
+Constraints / Avoid: Prohibited Objects: No small parts or items requiring fine manipulation. Prohibited Actions: Do not throw toys into bin. Do not overfill bin.
+
+Steps:
+1. Walk to the toys and stand still for 1 second.
+2. Start with arms in a neutral position. Pick up 1 large toy with both hands, or gather 2–3 small items (e.g., blocks) in one cupped hand.
+3. Walk to the bin and stop for 1 second.
+4. Hold the item(s) directly over the bin opening and place into the bin.
+5. Repeat until the floor is clear.
+
+Diversity: Vary toy types (blocks, cars, dolls, plushies). Change positions (floor vs. table). Vary number of items (3–6). Change bin location.

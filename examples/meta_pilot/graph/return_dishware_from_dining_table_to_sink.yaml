@@ -1,0 +1,451 @@
+task_id: return_dishware_from_dining_table_to_sink
+name: Return dishware from dining table to sink
+version: 0.1.0
+domain: household
+description: Return dishware from dining table to sink.
+objects:
+- id: dishes
+  name: Dishes
+  category: part
+  aliases:
+  - dishware
+  - plates
+  - bowls
+  - cutlery
+  - utensils
+  substitutes: []
+  hazards: []
+  kinds:
+  - plates
+  - bowls
+  - cutlery
+  source:
+    quote: Dishes (plates, bowls, cutlery).
+    inferred: false
+initial_state:
+- name: Present
+  args:
+  - dishes
+  value: true
+  checker: detector
+  scope: global
+- name: OnDiningTable
+  args:
+  - dishes
+  value: true
+  checker: vlm_effect
+  scope: global
+goal:
+- name: InSink
+  args:
+  - dishes
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+nodes:
+- id: start
+  name: Start
+  kind: start
+  description: Start
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Task started.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+- id: s01_walk_to_table
+  name: Walk to table
+  kind: step
+  description: Walk to the table and stand still for 1 second.
+  preconditions:
+  - name: OnDiningTable
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: global
+  effects:
+  - name: AtDiningTable
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - dishes
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Standing still at the dining table.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 1. Walk to the table and stand still for 1 second.
+    inferred: false
+- id: s02_pick_up_dishware
+  name: Pick up dishware
+  kind: step
+  description: Start with arms in a neutral position. Pick up 1 plate or bowl at a time (gather 2–3 utensils
+    together).
+  preconditions:
+  - name: AtDiningTable
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: HoldingDishware
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - dishes
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Holding 1 plate or bowl, or 2–3 utensils gathered together.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 2. Start with arms in a neutral position. Pick up 1 plate or bowl at a time (gather 2–3 utensils
+      together).
+    inferred: false
+- id: s03_walk_to_sink
+  name: Walk to sink
+  kind: step
+  description: Walk to the sink and stop for 1 second.
+  preconditions:
+  - name: HoldingDishware
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: AtSink
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - dishes
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Stopped at the kitchen sink.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 3. Walk to the sink and stop for 1 second.
+    inferred: false
+- id: s04_lower_item_into_sink
+  name: Lower item into sink
+  kind: step
+  description: Lower the item flat into the sink basin. Return arms to a neutral position.
+  preconditions:
+  - name: AtSink
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: HoldingDishware
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: LoweredFlatInSink
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: ArmsInNeutralPosition
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: InSink
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: HoldingDishware
+    args:
+    - dishes
+    value: false
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - dishes
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: The item rests flat in the sink basin and arms are returned to a neutral position.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 4. Lower the item flat into the sink basin. Return arms to a neutral position.
+    inferred: false
+- id: s05_repeat_for_each_dish
+  name: Repeat for each dish
+  kind: step
+  description: Repeat for each dish; group 2–3 utensils in one hand between trips.
+  preconditions:
+  - name: InSink
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: InSink
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  optional: false
+  mandatory_terminal: true
+  permitted_repeats: 1
+  target_objects:
+  - dishes
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: All dishes and utensils have been transported to the sink.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 5. Repeat for each dish; group 2–3 utensils in one hand between trips.
+    inferred: false
+- id: end
+  name: End
+  kind: end
+  description: End
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Task completed.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+edges:
+- source: start
+  target: s01_walk_to_table
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s01_walk_to_table
+  target: s02_pick_up_dishware
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_dishware
+  target: s03_walk_to_sink
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s03_walk_to_sink
+  target: s04_lower_item_into_sink
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s04_lower_item_into_sink
+  target: s05_repeat_for_each_dish
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s05_repeat_for_each_dish
+  target: end
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+provenance:
+  source: llm_draft_v2
+  model: gemini-3.8-flash
+  created_at: '2026-10-12T05:37:04+00:00'
+  notes:
+  - 0 lint warnings at acceptance
+  - 0 inferred elements
+  - usd=0.1928
+metadata: {}
+schema_version: '2'
+scenario:
+  activity_type: ''
+  site_id: ''
+  location: ''
+  scene_type: ''
+  country: ''
+  other:
+    Name: Return dishware from dining table to sink
+    From: Dining table.
+    To: Kitchen sink.
+  source:
+    quote: 'Name: Return dishware from dining table to sink'
+    inferred: false
+starting_state:
+- description: Dishware (plates, bowls, cutlery/utensils) are the items involved.
+  objects:
+  - dishes
+  predicates:
+  - name: Present
+    args:
+    - dishes
+    value: true
+    checker: detector
+    scope: global
+  source:
+    quote: 'Items: Dishware (plates, bowls, cutlery/utensils).'
+    inferred: false
+- description: Items are randomly placed on the dining table in varied positions and orientations.
+  objects:
+  - dishes
+  predicates:
+  - name: OnDiningTable
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: global
+  source:
+    quote: 'Position: Randomly placed on the dining table in varied positions and orientations.'
+    inferred: false
+repeat_blocks:
+- id: repeat_dishes
+  steps:
+  - s01_walk_to_table
+  - s02_pick_up_dishware
+  - s03_walk_to_sink
+  - s04_lower_item_into_sink
+  unit: each dish; group 2–3 utensils in one hand
+  objects:
+  - dishes
+  until:
+  - name: InSink
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  until_description: all dishes have been returned to the sink
+  count_hint: ''
+  source:
+    quote: Repeat for each dish; group 2–3 utensils in one hand between trips.
+    inferred: false
+acceptance:
+- id: acc_s04_lowered_flat
+  step: s04_lower_item_into_sink
+  objects:
+  - dishes
+  criterion: The item is lowered flat into the sink basin.
+  predicate:
+    name: LoweredFlatInSink
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: flat into the sink basin.
+    inferred: false
+- id: acc_s04_arms_neutral
+  step: s04_lower_item_into_sink
+  objects:
+  - dishes
+  criterion: Arms are returned to a neutral position.
+  predicate:
+    name: ArmsInNeutralPosition
+    args:
+    - dishes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: Return arms to a neutral position.
+    inferred: false
+constraints:
+- id: c01_do_not_rush
+  rule: Do not rush — place items carefully into the sink.
+  applies_to:
+  - s04_lower_item_into_sink
+  violation_looks_like: The person moves hastily, throwing, dropping, or slamming items carelessly into
+    the sink.
+  taxonomy: violation
+  source:
+    quote: 'Constraints / Avoid: Do not rush — place items carefully into the sink.'
+    inferred: false
+not_modelled:
+- quote: 'Reset: Randomize placement, number, and type of dishware after each episode.'
+  reason: Instruction for resetting the data collection setup between episodes.
+- quote: 'Diversity: Vary the number of items.'
+  reason: Data collection diversity instruction.
+- quote: Switch between plates, bowls, and silverware.
+  reason: Data collection diversity instruction.
+- quote: Alternate using your left or right hand to pick items up.
+  reason: Data collection diversity instruction.
+- quote: Change item positions and table settings.
+  reason: Data collection diversity instruction.
+- quote: Mix plate sizes (dinner, salad, bowl).
+  reason: Data collection diversity instruction.
+- quote: Swap dish set every session.
+  reason: Data collection diversity instruction.

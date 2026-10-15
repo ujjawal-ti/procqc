@@ -1,0 +1,437 @@
+task_id: return_shoes_from_entry_floor_to_shoe_rack
+name: Return shoes from entry floor to shoe rack
+version: 0.1.0
+domain: household
+description: Return shoes from entry floor to shoe rack
+objects:
+- id: shoes
+  name: Shoes
+  category: part
+  aliases:
+  - shoes
+  - shoe
+  - footwear
+  - pair of shoes
+  substitutes: []
+  hazards: []
+  kinds:
+  - sneakers
+  - sandals
+  - boots
+  source:
+    quote: 'Items: 1–3 pairs of shoes (sneakers, sandals, boots).'
+    inferred: false
+- id: shoe_rack
+  name: Shoe rack
+  category: fixture
+  aliases:
+  - shoe rack
+  - rack
+  - shelf
+  - entryway shoe rack
+  substitutes: []
+  hazards: []
+  kinds: []
+  source:
+    quote: 'To: Entryway shoe rack.'
+    inferred: false
+initial_state:
+- name: IsPresent
+  args:
+  - shoes
+  value: true
+  checker: detector
+  scope: global
+- name: OnFloor
+  args:
+  - shoes
+  value: true
+  checker: vlm_effect
+  scope: global
+goal:
+- name: PlacedFlatOnShelf
+  args:
+  - shoes
+  - shoe_rack
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+- name: ToePointingInward
+  args:
+  - shoes
+  - shoe_rack
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+- name: SideBySideNoOverlap
+  args:
+  - shoes
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+nodes:
+- id: start
+  name: Start
+  kind: start
+  description: Start node
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: ''
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+- id: s01_walk_to_shoes
+  name: Walk to shoes
+  kind: step
+  description: Walk to the shoes and stand still for 1 second.
+  preconditions:
+  - name: OnFloor
+    args:
+    - shoes
+    value: true
+    checker: vlm_effect
+    scope: global
+  effects:
+  - name: NearShoes
+    args:
+    - shoes
+    value: true
+    checker: vlm_effect
+    scope: global
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects:
+  - shoes
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Standing still next to the shoes.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 1. Walk to the shoes and stand still for 1 second.
+    inferred: false
+- id: s02_pick_up_shoes
+  name: Pick up shoe(s)
+  kind: step
+  description: Pick up 1 shoe (or hold a matched pair together).
+  preconditions:
+  - name: NearShoes
+    args:
+    - shoes
+    value: true
+    checker: vlm_effect
+    scope: global
+  effects:
+  - name: IsHeld
+    args:
+    - shoes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: OnFloor
+    args:
+    - shoes
+    value: false
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects:
+  - shoes
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Holding one shoe or a matched pair together.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 2. Pick up 1 shoe (or hold a matched pair together).
+    inferred: false
+- id: s03_walk_to_rack
+  name: Walk to rack
+  kind: step
+  description: Walk to the rack and stop for 1 second.
+  preconditions:
+  - name: IsHeld
+    args:
+    - shoes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: NearRack
+    args:
+    - shoe_rack
+    value: true
+    checker: vlm_effect
+    scope: global
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects:
+  - shoe_rack
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Standing still in front of the shoe rack with shoe(s) in hand.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 3. Walk to the rack and stop for 1 second.
+    inferred: false
+- id: s04_place_shoes_on_rack
+  name: Place shoe(s) on rack
+  kind: step
+  description: Place the shoe(s) flat on an open shelf with the toe pointing inward, side-by-side with
+    no overlap.
+  preconditions:
+  - name: NearRack
+    args:
+    - shoe_rack
+    value: true
+    checker: vlm_effect
+    scope: global
+  - name: IsHeld
+    args:
+    - shoes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: IsHeld
+    args:
+    - shoes
+    value: false
+    checker: vlm_effect
+    scope: instance
+  - name: PlacedFlatOnShelf
+    args:
+    - shoes
+    - shoe_rack
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: ToePointingInward
+    args:
+    - shoes
+    - shoe_rack
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: SideBySideNoOverlap
+    args:
+    - shoes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: true
+  permitted_repeats: 1
+  target_objects:
+  - shoes
+  - shoe_rack
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: The shoe(s) are placed flat on an open shelf of the rack with toes pointing inward,
+    side-by-side without overlap.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 4. Place the shoe(s) flat on an open shelf with the toe pointing inward, side-by-side with
+      no overlap.
+    inferred: false
+- id: end
+  name: End
+  kind: end
+  description: End node
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: ''
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+edges:
+- source: start
+  target: s01_walk_to_shoes
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s01_walk_to_shoes
+  target: s02_pick_up_shoes
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_shoes
+  target: s03_walk_to_rack
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s03_walk_to_rack
+  target: s04_place_shoes_on_rack
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s04_place_shoes_on_rack
+  target: end
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+provenance:
+  source: llm_draft_v2
+  model: gemini-3.8-flash
+  created_at: '2026-10-12T05:33:10+00:00'
+  notes:
+  - 0 lint warnings at acceptance
+  - 0 inferred elements
+  - usd=0.0425
+metadata: {}
+schema_version: '2'
+scenario:
+  activity_type: Return shoes from entry floor to shoe rack
+  site_id: ''
+  location: Entryway
+  scene_type: ''
+  country: ''
+  other:
+    from: Entryway floor.
+    to: Entryway shoe rack.
+  source:
+    quote: 'Name: Return shoes from entry floor to shoe rack'
+    inferred: false
+starting_state:
+- description: 1–3 pairs of shoes are present in the scene.
+  objects:
+  - shoes
+  predicates:
+  - name: IsPresent
+    args:
+    - shoes
+    value: true
+    checker: detector
+    scope: global
+  source:
+    quote: 'Items: 1–3 pairs of shoes (sneakers, sandals, boots).'
+    inferred: false
+- description: Shoes are randomly placed on the entryway floor in varied positions.
+  objects:
+  - shoes
+  predicates:
+  - name: OnFloor
+    args:
+    - shoes
+    value: true
+    checker: vlm_effect
+    scope: global
+  source:
+    quote: 'Position: Randomly placed on the entryway floor in varied positions.'
+    inferred: false
+repeat_blocks: []
+acceptance:
+- id: acc_01
+  step: s04_place_shoes_on_rack
+  objects:
+  - shoes
+  - shoe_rack
+  criterion: The shoe(s) must be placed flat on an open shelf.
+  predicate:
+    name: PlacedFlatOnShelf
+    args:
+    - shoes
+    - shoe_rack
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: flat on an open shelf
+    inferred: false
+- id: acc_02
+  step: s04_place_shoes_on_rack
+  objects:
+  - shoes
+  - shoe_rack
+  criterion: The shoe(s) must be placed with the toe pointing inward.
+  predicate:
+    name: ToePointingInward
+    args:
+    - shoes
+    - shoe_rack
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: with the toe pointing inward
+    inferred: false
+- id: acc_03
+  step: s04_place_shoes_on_rack
+  objects:
+  - shoes
+  criterion: The shoe(s) must be placed side-by-side with no overlap.
+  predicate:
+    name: SideBySideNoOverlap
+    args:
+    - shoes
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: side-by-side with no overlap
+    inferred: false
+constraints:
+- id: const_01
+  rule: Do not throw shoes onto rack.
+  applies_to:
+  - s04_place_shoes_on_rack
+  violation_looks_like: Shoes are tossed, thrown, or dropped from a distance onto the rack instead of
+    being set down flat by hand.
+  taxonomy: violation
+  source:
+    quote: 'Constraints / Avoid: Do not throw shoes onto rack.'
+    inferred: false
+not_modelled:
+- quote: 'Reset: Randomize placement, shoe types, and positions each episode.'
+  reason: Instruction about resetting between episodes.
+- quote: 'Diversity: Vary shoe types (sneakers, sandals, boots). Change positions on floor. Use different
+    rack shelf/slot. Alternate left vs. right hand pickup.'
+  reason: Instruction about variations to collect across the data set.

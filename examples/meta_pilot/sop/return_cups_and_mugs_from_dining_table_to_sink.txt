@@ -1,0 +1,25 @@
+Name: Return cups and mugs from dining table to sink
+
+Description:
+Objects:
+Cups, mugs.
+
+From: Dining table.
+To: Kitchen sink.
+
+Starting State:
+
+Items: 3–5 cups or mugs.
+Position: Random positions on the dining table.
+Reset: Vary placement and orientation each episode.
+
+Constraints / Avoid: None specified.
+
+Steps:
+1. Walk to the table and stand still for 1 second.
+2. Start with arms in a neutral position. Pick up 1 cup by the handle.
+3. Walk to the sink and stop for 1 second.
+4. Place the cup upright inside the sink basin. Return arms to a neutral position.
+5. Repeat for remaining cups (1 at a time).
+
+Diversity: Mix up coffee mugs, ceramic cups, plastic cups, with/without handles. Vary positions across the table. Change handle orientation each time. Switch between left- and right-handed pickups.

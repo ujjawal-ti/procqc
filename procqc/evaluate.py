@@ -72,30 +72,39 @@ def predictions(result: dict, check: str, keep: Optional[Callable], with_review:
     return [p for p in preds if keep is None or keep(p)]
 
 
+def match_recording(kind: str, result: dict, label: Optional[dict], with_review: bool) -> Optional[dict]:
+    """One recording: which predictions match which labelled errors. None if the check did not run.
+    Returns {"preds": [(prediction, [matched label indexes])], "gold": [labelled error], "hit": set of indexes}."""
+    check, lab, keep, match, several = SPECS[kind]
+    preds = predictions(result, check, keep, with_review)
+    if preds is None:
+        return None
+    gold = [f for f in (label or {}).get("findings", []) if f.get("kind") == lab]
+    if kind == "early_termination":
+        gold, preds = gold[:1], preds[:1]  # one event per recording
+    hit: set = set()
+    out = []
+    for p in preds:
+        ms = [i for i, g in enumerate(gold) if i not in hit and match(p, g)]
+        ms = ms if several else ms[:1]
+        hit.update(ms)
+        out.append((p, ms))
+    return {"preds": out, "gold": gold, "hit": hit}
+
+
 def evaluate(kind: str, results: Dict[str, dict], labels: Dict[str, dict], with_review: bool) -> dict:
-    check, label, keep, match, several = SPECS[kind]
     rec = {"tp": 0, "fn": 0, "fp": 0, "tn": 0}
     ev = {"tp": 0, "fp": 0, "fn": 0}
     skipped = 0
     for eid, r in results.items():
-        preds = predictions(r, check, keep, with_review)
-        if preds is None:
+        m = match_recording(kind, r, labels.get(eid), with_review)
+        if m is None:
             skipped += 1
             continue
-        gold = [f for f in (labels.get(eid) or {}).get("findings", []) if f.get("kind") == label]
-        if kind == "early_termination":
-            gold, preds = gold[:1], preds[:1]  # one event per recording
-        hit: set = set()
-        for p in preds:
-            ms = [i for i, g in enumerate(gold) if i not in hit and match(p, g)]
-            if not ms:
-                ev["fp"] += 1
-                continue
-            for i in (ms if several else ms[:1]):
-                hit.add(i)
-                ev["tp"] += 1
-        ev["fn"] += len(gold) - len(hit)
-        rec[("tp" if preds else "fn") if gold else ("fp" if preds else "tn")] += 1
+        ev["tp"] += sum(len(ms) for _, ms in m["preds"])
+        ev["fp"] += sum(not ms for _, ms in m["preds"])
+        ev["fn"] += len(m["gold"]) - len(m["hit"])
+        rec[("tp" if m["preds"] else "fn") if m["gold"] else ("fp" if m["preds"] else "tn")] += 1
     return {"recording": dict(rec, **rates(rec["tp"], rec["fp"], rec["fn"], rec["tn"])),
             "event": dict(ev, **rates(ev["tp"], ev["fp"], ev["fn"])), "skipped": skipped}
 

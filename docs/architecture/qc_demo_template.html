@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoQC demo: real recordings</title>
+<style>
+  :root { --bg:#0f1216; --panel:#171b21; --panel2:#1e242c; --line:#2a323d; --text:#e6e9ee; --muted:#98a2b3;
+          --acc:#4fa3ff; --ok:#3ccf91; --warn:#f5b942; --bad:#ff5d6c; --info:#b48cff; --mono: ui-monospace, Menlo, Consolas, monospace; }
+  @media (prefers-color-scheme: light) { :root { --bg:#f6f7f9; --panel:#fff; --panel2:#eef1f5; --line:#d7dde6; --text:#1a2230; --muted:#5b6676; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  header { padding:18px 28px 12px; border-bottom:1px solid var(--line); }
+  h1 { margin:0 0 4px; font-size:20px; }
+  .sub { color:var(--muted); font-size:13px; }
+  main { padding:16px 28px 40px; display:grid; grid-template-columns: 300px minmax(0,1fr); gap:16px; }
+  main > * { min-width:0; }
+  .side { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; align-self:start; position:sticky; top:12px; max-height:calc(100vh - 24px); overflow:auto; }
+  .ep { padding:8px 10px; border-radius:10px; cursor:pointer; border:1px solid transparent; margin-bottom:6px; }
+  .ep:hover { border-color:var(--line); } .ep.active { border-color:var(--acc); background:var(--panel2); }
+  .ep .id { font-family:var(--mono); font-size:12px; } .ep .r { font-size:12px; color:var(--muted); }
+  .badge { display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--line); }
+  .b-clean { border-color:var(--ok); color:var(--ok); } .b-major { border-color:var(--bad); color:var(--bad); }
+  .b-minor, .b-review { border-color:var(--warn); color:var(--warn); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:14px; }
+  .card h3 { margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+  h2 { margin:0 0 6px; font-size:18px; }
+  .kv { display:grid; grid-template-columns:max-content 1fr; gap:4px 12px; font-size:13px; } .kv b { color:var(--muted); font-weight:500; }
+  table { border-collapse:collapse; width:100%; font-size:12.5px; } th, td { text-align:left; padding:5px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
+  code { font-family:var(--mono); font-size:12px; }
+  .steps { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:6px; }
+  .step { border:1px solid var(--line); border-radius:10px; padding:7px 9px; font-size:12.5px; background:var(--bg); border-left-width:4px; }
+  .step.perf { border-left-color:var(--ok); } .step.miss { border-left-color:var(--bad); } .step.none { border-left-color:var(--line); opacity:.75; }
+  .step .n { color:var(--muted); font-family:var(--mono); font-size:11px; }
+  .tags { margin-top:4px; display:flex; gap:4px; flex-wrap:wrap; }
+  .tag { font-size:10.5px; padding:1px 6px; border-radius:6px; border:1px solid; }
+  .t-gold { border-color:var(--info); color:var(--info); } .t-pred { border-color:var(--bad); color:var(--bad); } .t-hit { border-color:var(--ok); color:var(--ok); }
+  .tl { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; }
+  .tl figure { margin:0; flex:none; width:150px; font-size:11px; color:var(--muted); cursor:pointer; }
+  .tl img { width:150px; border-radius:8px; border:2px solid var(--line); display:block; }
+  .tl figure.matched img { border-color:var(--ok); } .tl figure.cited img { border-color:var(--bad); }
+  .tl .cap { height:3.6em; overflow:hidden; line-height:1.2em; margin-top:3px; }
+  .finding { border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:10px; background:var(--panel2); }
+  .finding .head { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:6px; }
+  .frames { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; } .frames figure { margin:0; text-align:center; font-size:11px; color:var(--muted); }
+  .frames img { height:110px; border-radius:8px; border:1px solid var(--line); display:block; } .frames figure.ctx img { border-color:var(--info); }
+  .muted { color:var(--muted); } .note { font-size:12.5px; color:var(--muted); }
+  details summary { cursor:pointer; color:var(--acc); font-size:13px; }
+  pre { background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:10px; font-family:var(--mono); font-size:11.5px; white-space:pre-wrap; max-height:360px; overflow:auto; }
+  .summary { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:10px; }
+  .stat { background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px; } .stat .v { font-size:22px; font-weight:700; } .stat .k { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  @media (max-width: 900px) { main { grid-template-columns:1fr; } .side { position:static; max-height:none; } }
+</style>
+</head>
+<body>
+<header><h1 id="title"></h1><div class="sub" id="sub"></div></header>
+<main>
+  <aside class="side" id="side"></aside>
+  <section id="detail"></section>
+</main>
+<script>/*__DATA__*/</script>
+<script>
+(function(){
+  const D = window.QC; if (!D) return;
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const usd = x => '$' + (x ?? 0).toFixed(3);
+  const vb = v => `<span class="badge ${v==='clean'?'b-clean':v==='flagged_major'?'b-major':v==='needs_review'?'b-review':'b-minor'}">${esc(v)}</span>`;
+  const IN_SCOPE = new Set(['omission','misordering','early_termination','addition_repeat','addition_offgraph']);
+  $('#title').textContent = D.title;
+  const m = D.metrics.confirmed, mk = m ? m.per_kind : {};
+  const om = mk.omission || {tp:0,fp:0,fn:0};
+  $('#sub').innerHTML = `${D.episodes.length} recordings · real labels · strict scoring: omission ${om.tp} caught, ${om.fp} false, ${om.fn} missed · clean recordings falsely flagged ${m ? m.clean_episode_fpr.n_false_flagged + ' of ' + m.clean_episode_fpr.n_clean : '–'} · total cost ${usd(D.episodes.reduce((a,e)=>a+e.cost.usd,0))}`;
+
+  // overview card
+  function overview() {
+    const rows = Object.entries(mk).map(([k,x]) => `<tr><td>${esc(k)}</td><td>${x.tp}</td><td>${x.fp}</td><td>${x.fn}</td><td>${x.precision ?? '–'}</td><td>${x.recall ?? '–'}</td></tr>`).join('');
+    return `<div class="card"><h3>Overview, strict scoring (confirmed findings only)</h3>
+      <div class="summary">
+        <div class="stat"><div class="v">${om.tp} / ${om.tp+om.fn}</div><div class="k">omissions caught</div></div>
+        <div class="stat"><div class="v">${om.fp}</div><div class="k">false omissions</div></div>
+        <div class="stat"><div class="v">${m ? m.clean_episode_fpr.n_false_flagged+' / '+m.clean_episode_fpr.n_clean : '–'}</div><div class="k">clean recordings flagged</div></div>
+        <div class="stat"><div class="v">${m ? Math.round(m.human_review_rate*100)+' %' : '–'}</div><div class="k">routed to human</div></div>
+        <div class="stat"><div class="v">${usd(D.episodes.reduce((a,e)=>a+e.cost.usd,0)/D.episodes.length)}</div><div class="k">per recording</div></div>
+      </div>
+      <table style="margin-top:10px"><tr><th>kind</th><th>true</th><th>false</th><th>missed</th><th>precision</th><th>recall</th></tr>${rows}</table>
+      <p class="note">How it works: one native-video call narrates every manipulation with its state change and, where unambiguous, the recipe step it performs; seven text judges then compare that narration with the complete recipe graph, one error kind each, citing narration entries; the adjudicator reviews frames around each finding. Wrong-tool and parameter labels are shown for completeness; those kinds were not detectable by the earlier arms.</p>
+    </div>`;
+  }
+
+  function side() {
+    $('#side').innerHTML = `<div class="ep ${cur===-1?'active':''}" data-i="-1"><div class="id">Overview</div><div class="r">all recordings</div></div>` +
+      D.episodes.map((e,i) => `<div class="ep ${i===cur?'active':''}" data-i="${i}"><div class="id">${esc(e.episode_id)} ${vb(e.verdict)}</div><div class="r">${esc(e.recipe)} · ${(e.duration_s/60).toFixed(1)} min · ${e.clean ? 'labelled clean' : e.gold.filter(g=>IN_SCOPE.has(g.kind)).map(g=>g.kind).join(', ') || 'other errors only'}</div></div>`).join('');
+    document.querySelectorAll('.ep').forEach(el => el.addEventListener('click', () => show(+el.dataset.i)));
+  }
+
+  function matchGold(e, f) {
+    return e.gold.some(g => g.kind === f.kind && ((g.step && g.step === f.step) || (!g.step && f.kind === g.kind)));
+  }
+
+  function episode(e) {
+    const goldIn = e.gold.filter(g => IN_SCOPE.has(g.kind) || g.kind==='parameter_deviation' || g.kind==='wrong_tool_object');
+    const stepsHtml = e.steps.map(s => {
+      const cls = s.performed ? 'perf' : (s.gold.length ? 'miss' : 'none');
+      const tags = [...s.gold.map(k => `<span class="tag ${s.pred.includes(k)?'t-hit':'t-gold'}">gold: ${esc(k)}</span>`),
+                    ...s.pred.filter(k => !s.gold.includes(k)).map(k => `<span class="tag t-pred">predicted: ${esc(k)}</span>`)];
+      return `<div class="step ${cls}"><div class="n">step ${s.pos}${s.terminal?' · final':''} · ${s.performed?'narrated':'not narrated'}</div>${esc(s.text)}${tags.length?`<div class="tags">${tags.join('')}</div>`:''}</div>`;
+    }).join('');
+    const cited = new Set(e.findings.flatMap(f => (f.reasons||[]).flatMap(r => { const m = r.match(/entries \[(.*?)\]/); return m ? m[1].split(',').map(x=>+x.trim()).filter(x=>!isNaN(x)) : []; })));
+    const tl = e.narration.actions.map((a,i) => `<figure class="${cited.has(i)?'cited':(a.matched_step_id?'matched':'')}" title="${esc(a.state_change)}">${a.frame?`<img src="data:image/jpeg;base64,${a.frame}">`:''}<div class="cap"><b>#${i}</b> ${a.start_s.toFixed(0)}–${a.end_s.toFixed(0)} s · ${esc(a.hand)}<br>${esc(a.verb)} ${esc(a.object)}${a.matched_step_id?`<br><code>${esc(a.matched_step_id.slice(0,18))}</code>`:''}</div></figure>`).join('');
+    const findings = e.findings.length ? e.findings.map(f => {
+      const a = f.adjudication || {}; const hit = matchGold(e, f);
+      const st = f.final_status;
+      return `<div class="finding"><div class="head"><span class="badge ${st==='confirmed'?'b-major':st==='needs_human'?'b-review':'b-minor'}">${esc(f.kind)} · ${esc(st)}</span>
+        ${f.step?`<code>${esc(f.step)}</code>`:''}<span class="muted">t = ${(f.segment_start??0).toFixed(1)} s · conf ${f.confidence}</span>
+        <span class="tag ${hit?'t-hit':(IN_SCOPE.has(f.kind)||f.kind==='parameter_deviation'?'t-pred':'')}">${hit?'matches a label':'no matching label'}</span>
+        ${a.decision?`<span class="muted">adjudicator: ${esc(a.decision)} (${a.confidence})</span>`:''}</div>
+        <div>${esc(f.detail)}</div>
+        ${a.rationale?`<details><summary>adjudicator rationale</summary><div class="note">${esc(a.rationale)}</div>${a.advocate_argument?`<div class="note" style="margin-top:4px"><b>devil's advocate${a.advocate_agrees===false?' (disagrees)':''}:</b> ${esc(a.advocate_argument)}</div>`:''}</details>`:''}
+        ${f.frames&&f.frames.length?`<div class="frames">${f.frames.map(fr=>`<figure class="${fr.ctx?'ctx':''}"><img src="data:image/jpeg;base64,${fr.jpg}"><figcaption>${fr.t} s${fr.ctx?' · context':''}</figcaption></figure>`).join('')}</div>`:''}
+      </div>`; }).join('') : '<div class="note">No findings: the arm judged this recording clean.</div>';
+    const missed = goldIn.filter(g => !e.findings.some(f => f.final_status!=='rejected' && f.kind===g.kind && f.step===g.step));
+    const goldTbl = goldIn.length ? `<table><tr><th>kind</th><th>step</th><th>note</th><th>detected?</th></tr>${goldIn.map(g => { const det = e.findings.some(f => (f.final_status==='confirmed'||f.final_status==='needs_human') && f.kind===g.kind && f.step===g.step); return `<tr><td>${esc(g.kind)}</td><td><code>${esc(g.step||'–')}</code></td><td class="note">${esc(g.note||'')}</td><td>${det?'<span class="tag t-hit">yes</span>':'<span class="tag t-gold">no</span>'}</td></tr>`; }).join('')}</table>` : '<div class="note">Labelled clean: no errors annotated.</div>';
+    const cmp = e.compare.length ? `<details><summary>Earlier arm on this recording (one video call per kind): ${e.compare.length} findings</summary><table><tr><th>kind</th><th>status</th><th>step</th><th>t</th><th>detail</th></tr>${e.compare.map(c=>`<tr><td>${esc(c.kind)}</td><td>${esc(c.status)}</td><td><code>${esc(c.step||'–')}</code></td><td>${c.t==null?'':c.t.toFixed(1)}</td><td class="note">${esc(c.detail)}</td></tr>`).join('')}</table></details>` : '';
+    return `
+      <div class="card"><h2>${esc(e.episode_id)} ${vb(e.verdict)} <span class="muted" style="font-size:13px">quality ${e.quality}/5 · ${e.route_to_human?'routed to human':'no human needed'} · ${usd(e.cost.usd)}</span></h2>
+        <div class="kv"><b>recipe</b><span>${esc(e.recipe)}</span><b>length</b><span>${(e.duration_s/60).toFixed(1)} min (${e.duration_s} s)</span><b>narration</b><span>${e.narration.actions.length} entries, ${e.narration.actions.filter(a=>a.matched_step_id).length} matched to recipe steps</span><b>cost by stage</b><span>${Object.entries(e.cost_by_stage).map(([k,v])=>`${esc(k)} ${usd(v)}`).join(' · ')}</span></div></div>
+      <div class="card"><h3>Ground truth (CaptainCook4D annotations)</h3>${goldTbl}</div>
+      <div class="card"><h3>Recipe graph · green = narrated as performed · red = labelled missing · tags show labels and predictions</h3><div class="steps">${stepsHtml}</div>
+        <details style="margin-top:8px"><summary>Full graph context as given to the judges</summary><pre>${esc(e.graph_context)}</pre></details></div>
+      <div class="card"><h3>Narration timeline (stage 1, one video call) · green border = matched to a step · red border = cited by a finding · hover for the state change</h3>
+        <div class="note" style="margin-bottom:6px"><b>Scene at start:</b> ${esc(e.narration.scene_start)}</div>
+        <div class="tl">${tl}</div>
+        <div class="note" style="margin-top:6px"><b>Scene at end:</b> ${esc(e.narration.scene_end)}</div>
+        ${e.narration.notes?`<div class="note"><b>Observer notes:</b> ${esc(e.narration.notes)}</div>`:''}</div>
+      <div class="card"><h3>Findings (stage 2 judges + stage 3 adjudicator) · ${e.findings.length} · missed labels: ${missed.length}</h3>${findings}${cmp}</div>`;
+  }
+
+  let cur = -1;
+  function show(i) { cur = i; side(); $('#detail').innerHTML = i < 0 ? overview() : episode(D.episodes[i]); window.scrollTo(0,0); }
+  show(-1);
+})();
+</script>
+</body>
+</html>

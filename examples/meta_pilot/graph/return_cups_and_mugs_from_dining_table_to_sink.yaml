@@ -1,0 +1,420 @@
+task_id: return_cups_and_mugs_from_dining_table_to_sink
+name: Return cups and mugs from dining table to sink
+version: 0.1.0
+domain: household
+description: Return cups and mugs from dining table to sink
+objects:
+- id: cup_or_mug
+  name: cups and mugs
+  category: container
+  aliases:
+  - cup
+  - mug
+  - coffee mug
+  - ceramic cup
+  - plastic cup
+  substitutes: []
+  hazards: []
+  kinds:
+  - Cups
+  - mugs
+  source:
+    quote: Cups, mugs.
+    inferred: false
+initial_state:
+- name: OnDiningTable
+  args:
+  - cup_or_mug
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+- name: InsideSinkBasin
+  args:
+  - cup_or_mug
+  value: false
+  checker: vlm_effect
+  scope: cumulative
+goal:
+- name: InsideSinkBasin
+  args:
+  - cup_or_mug
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+- name: IsUpright
+  args:
+  - cup_or_mug
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+nodes:
+- id: start
+  name: start
+  kind: start
+  description: Start of task execution
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Initial state before task begins.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+- id: s01_walk_to_table
+  name: walk_to_table
+  kind: step
+  description: Walk to the table and stand still for 1 second.
+  preconditions: []
+  effects:
+  - name: AtTable
+    args: []
+    value: true
+    checker: vlm_effect
+    scope: global
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Person or robot is standing at the dining table.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 1. Walk to the table and stand still for 1 second.
+    inferred: false
+- id: s02_pick_up_cup
+  name: pick_up_cup
+  kind: step
+  description: Start with arms in a neutral position. Pick up 1 cup by the handle.
+  preconditions:
+  - name: AtTable
+    args: []
+    value: true
+    checker: vlm_effect
+    scope: global
+  - name: OnDiningTable
+    args:
+    - cup_or_mug
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: HeldByHandle
+    args:
+    - cup_or_mug
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: OnDiningTable
+    args:
+    - cup_or_mug
+    value: false
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - cup_or_mug
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: One cup or mug is picked up and held by its handle.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 2. Start with arms in a neutral position. Pick up 1 cup by the handle.
+    inferred: false
+- id: s03_walk_to_sink
+  name: walk_to_sink
+  kind: step
+  description: Walk to the sink and stop for 1 second.
+  preconditions:
+  - name: HeldByHandle
+    args:
+    - cup_or_mug
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: AtSink
+    args: []
+    value: true
+    checker: vlm_effect
+    scope: global
+  - name: AtTable
+    args: []
+    value: false
+    checker: vlm_effect
+    scope: global
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - cup_or_mug
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Person or robot is standing at the kitchen sink holding the cup.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 3. Walk to the sink and stop for 1 second.
+    inferred: false
+- id: s04_place_cup_in_sink
+  name: place_cup_in_sink
+  kind: step
+  description: Place the cup upright inside the sink basin. Return arms to a neutral position.
+  preconditions:
+  - name: AtSink
+    args: []
+    value: true
+    checker: vlm_effect
+    scope: global
+  - name: HeldByHandle
+    args:
+    - cup_or_mug
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: HeldByHandle
+    args:
+    - cup_or_mug
+    value: false
+    checker: vlm_effect
+    scope: instance
+  - name: InsideSinkBasin
+    args:
+    - cup_or_mug
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: IsUpright
+    args:
+    - cup_or_mug
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: ArmsInNeutralPosition
+    args: []
+    value: true
+    checker: vlm_effect
+    scope: global
+  optional: false
+  mandatory_terminal: true
+  permitted_repeats: 999
+  target_objects:
+  - cup_or_mug
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: The cup is placed upright inside the sink basin, and arms are returned to a neutral
+    position.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 4. Place the cup upright inside the sink basin. Return arms to a neutral position.
+    inferred: false
+- id: end
+  name: end
+  kind: end
+  description: End of task execution
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: All cups and mugs have been returned to the sink.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+edges:
+- source: start
+  target: s01_walk_to_table
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s01_walk_to_table
+  target: s02_pick_up_cup
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_cup
+  target: s03_walk_to_sink
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s03_walk_to_sink
+  target: s04_place_cup_in_sink
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s04_place_cup_in_sink
+  target: end
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+provenance:
+  source: llm_draft_v2
+  model: gemini-3.8-flash
+  created_at: '2026-10-12T05:37:37+00:00'
+  notes:
+  - 0 lint warnings at acceptance
+  - 0 inferred elements
+  - usd=0.1022
+metadata: {}
+schema_version: '2'
+scenario:
+  activity_type: Return cups and mugs from dining table to sink
+  site_id: ''
+  location: ''
+  scene_type: ''
+  country: ''
+  other:
+    From: Dining table.
+    To: Kitchen sink.
+  source:
+    quote: 'Name: Return cups and mugs from dining table to sink'
+    inferred: false
+starting_state:
+- description: There are 3–5 cups or mugs.
+  objects:
+  - cup_or_mug
+  predicates:
+  - name: CountInRange
+    args:
+    - cup_or_mug
+    value: true
+    checker: detector
+    scope: cumulative
+  source:
+    quote: 'Items: 3–5 cups or mugs.'
+    inferred: false
+- description: The items are placed at random positions on the dining table.
+  objects:
+  - cup_or_mug
+  predicates:
+  - name: OnDiningTable
+    args:
+    - cup_or_mug
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  source:
+    quote: 'Position: Random positions on the dining table.'
+    inferred: false
+repeat_blocks:
+- id: repeat_cups
+  steps:
+  - s01_walk_to_table
+  - s02_pick_up_cup
+  - s03_walk_to_sink
+  - s04_place_cup_in_sink
+  unit: 1 cup at a time
+  objects:
+  - cup_or_mug
+  until:
+  - name: InsideSinkBasin
+    args:
+    - cup_or_mug
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  until_description: all remaining cups have been returned
+  count_hint: 3–5 cups or mugs
+  source:
+    quote: 5. Repeat for remaining cups (1 at a time).
+    inferred: false
+acceptance:
+- id: acc_01_cup_picked_by_handle
+  step: s02_pick_up_cup
+  objects:
+  - cup_or_mug
+  criterion: The cup is picked up by its handle.
+  predicate:
+    name: HeldByHandle
+    args:
+    - cup_or_mug
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: Pick up 1 cup by the handle.
+    inferred: false
+- id: acc_02_cup_resting_upright_sink
+  step: s04_place_cup_in_sink
+  objects:
+  - cup_or_mug
+  criterion: The cup is resting upright inside the sink basin.
+  predicate:
+    name: InsideSinkBasin
+    args:
+    - cup_or_mug
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: Place the cup upright inside the sink basin.
+    inferred: false
+- id: acc_03_arms_returned_neutral
+  step: s04_place_cup_in_sink
+  objects: []
+  criterion: Arms are returned to a neutral position.
+  predicate:
+    name: ArmsInNeutralPosition
+    args: []
+    value: true
+    checker: vlm_effect
+    scope: global
+  per_object: false
+  source:
+    quote: Return arms to a neutral position.
+    inferred: false
+constraints: []
+not_modelled:
+- quote: 'Constraints / Avoid: None specified.'
+  reason: Explicitly specifies no constraints or avoidance rules.
+- quote: 'Reset: Vary placement and orientation each episode.'
+  reason: Instruction for resetting between recording episodes.
+- quote: 'Diversity: Mix up coffee mugs, ceramic cups, plastic cups, with/without handles. Vary positions
+    across the table. Change handle orientation each time. Switch between left- and right-handed pickups.'
+  reason: Data collection diversity variations across recordings.
+- quote: stand still for 1 second
+  reason: Durations and wait times are checked separately.
+- quote: stop for 1 second
+  reason: Durations and wait times are checked separately.

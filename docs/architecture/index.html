@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>procqc — procedural-error QC pipeline, one real episode end to end</title>
+<style>
+  :root {
+    --bg: #0f1216; --panel: #171b21; --panel2: #1e242c; --line: #2a323d; --text: #e6e9ee; --muted: #98a2b3;
+    --accent: #4fa3ff; --ok: #3ccf91; --warn: #f5b942; --bad: #ff5d6c; --info: #b48cff;
+    --s1: #4fa3ff; --s2: #3ccf91; --s3: #f5b942; --s4: #ff8a5b; --s5: #b48cff; --s6: #ff5d6c; --bgseg: #3a4350;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f6f7f9; --panel: #ffffff; --panel2: #eef1f5; --line: #d7dde6; --text: #1a2230; --muted: #5b6676; --bgseg: #c9d1dc; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  header { padding: 18px 28px 10px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 14px; align-items: baseline; justify-content: space-between; }
+  header h1 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: .2px; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; font: inherit; font-size: 13px; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #06111f; border-color: var(--accent); font-weight: 600; }
+  select { background: var(--panel2); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font: inherit; font-size: 13px; }
+  main { padding: 16px 28px 40px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  main > * { min-width: 0; }
+
+  /* flow diagram */
+  .flow { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px 10px; overflow-x: auto; }
+  .flow .lane { display: flex; align-items: center; flex-wrap: wrap; row-gap: 10px; padding: 6px 0; }
+  .flow .lane-title { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 6px 0 2px; }
+  .node { position: relative; background: var(--panel2); border: 1.5px solid var(--line); border-radius: 12px; padding: 8px 12px; min-width: 128px; max-width: 168px; cursor: pointer; transition: transform .25s, border-color .25s, box-shadow .25s; }
+  .node .k { font-size: 11px; color: var(--muted); }
+  .node .n { font-weight: 600; font-size: 13px; line-height: 1.25; }
+  .node .io { font-size: 11px; color: var(--muted); margin-top: 4px; font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .node.done { border-color: color-mix(in srgb, var(--ok) 60%, var(--line)); }
+  .node.active { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); transform: translateY(-2px); }
+  .node.side { border-style: dashed; }
+  .arrow { width: 34px; height: 2px; background: var(--line); position: relative; flex: none; }
+  .arrow::after { content: ""; position: absolute; right: -1px; top: -4px; border: 5px solid transparent; border-left-color: var(--line); }
+  .arrow.lit { background: var(--accent); }
+  .arrow.lit::after { border-left-color: var(--accent); }
+  .arrow .pkt { position: absolute; top: -4px; left: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); opacity: 0; }
+  .arrow.lit .pkt { animation: travel .9s linear infinite; opacity: 1; }
+  @keyframes travel { from { left: -4px; } to { left: 30px; } }
+  .branch { display: flex; flex-direction: column; gap: 6px; }
+
+  /* timeline */
+  .timeline { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
+  .timeline h3, .detail h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+  .timeline svg { width: 100%; height: 210px; display: block; }
+  .tl-hover { display: flex; gap: 12px; align-items: center; margin-top: 8px; min-height: 96px; color: var(--muted); font-size: 13px; }
+  .tl-hover img { height: 92px; border-radius: 8px; border: 1px solid var(--line); }
+
+  /* detail */
+  .detail { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .detail .full { grid-column: 1 / -1; }
+  .detail h2 { margin: 0 0 4px; font-size: 18px; }
+  .detail .lead { color: var(--muted); margin: 0 0 8px; }
+  .card { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .card h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+  .chip { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); color: var(--text); }
+  .chip.ok { border-color: var(--ok); color: var(--ok); } .chip.bad { border-color: var(--bad); color: var(--bad); }
+  .chip.warn { border-color: var(--warn); color: var(--warn); } .chip.info { border-color: var(--info); color: var(--info); }
+  .chip.acc { border-color: var(--accent); color: var(--accent); }
+  pre, code { font-family: var(--mono); font-size: 12px; }
+  pre { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; overflow: auto; max-height: 340px; margin: 6px 0; white-space: pre-wrap; word-break: break-word; }
+  code.path { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  tr.bad td { background: color-mix(in srgb, var(--bad) 12%, transparent); }
+  tr.unk td { color: var(--muted); }
+  .frames { display: flex; gap: 6px; flex-wrap: wrap; }
+  .frames figure { margin: 0; text-align: center; font-size: 11px; color: var(--muted); }
+  .frames img { display: block; border-radius: 8px; border: 1px solid var(--line); height: 96px; }
+  .frames.big img { height: 130px; }
+  .frames.small img { height: 70px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 13px; }
+  .kv b { color: var(--muted); font-weight: 500; }
+  .steps { display: flex; flex-wrap: wrap; gap: 6px; }
+  .stepbadge { padding: 4px 10px; border-radius: 8px; font-size: 12px; font-family: var(--mono); border: 1px solid; }
+  .verdict-big { font-size: 28px; font-weight: 700; }
+  .stage-nav { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .stage-nav button { padding: 4px 10px; font-size: 12px; }
+  .stage-nav button.active { border-color: var(--accent); color: var(--accent); }
+  .note { font-size: 12.5px; color: var(--muted); }
+  .graphviz { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+  .gnode { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--bg); font-size: 12px; }
+  .gnode .id { font-family: var(--mono); color: var(--accent); }
+  .gnode .pe { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+  .gnode.term { border-color: var(--bad); }
+  details summary { cursor: pointer; color: var(--accent); font-size: 13px; }
+  footer { padding: 14px 28px 30px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); }
+  @media (max-width: 1000px) { .detail { grid-template-columns: 1fr; } .grid3 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>procqc — procedural-error QC pipeline</h1>
+    <div class="sub" id="subtitle">Loading real episode data…</div>
+  </div>
+  <div class="controls">
+    <button id="btnPrev">◀ Prev</button>
+    <button id="btnPlay" class="primary">▶ Play walkthrough</button>
+    <button id="btnNext">Next ▶</button>
+    <select id="speed"><option value="9000">slow</option><option value="6000" selected>normal</option><option value="3500">fast</option></select>
+    <a id="dashLink" href="#" style="font-size:13px;color:var(--accent);display:none" target="_blank">Open code dashboard ↗</a>
+  </div>
+</header>
+
+<main>
+  <section class="flow" id="flow"></section>
+  <section class="timeline">
+    <h3>Episode timeline — <span id="tlTitle"></span></h3>
+    <svg id="tl" viewBox="0 0 1000 210" preserveAspectRatio="none"></svg>
+    <div class="tl-hover" id="tlHover">Hover the timeline to see the nearest frame the pipeline actually looked at.</div>
+  </section>
+  <section class="detail" id="detail"></section>
+</main>
+<footer>
+  All numbers, frames, texts and JSON on this page are read from files the pipeline produced for this episode
+  (verdict JSON, task graph YAML, item-log export) or recomputed deterministically from the video (motion signal, symbolic verification, lint).
+  Nothing is illustrative or mocked. Model: gemini-3.8-flash via Fuelix.
+</footer>
+
+<script src="demo_data.js"></script>
+<script>
+(function () {
+  const D = window.DEMO;
+  if (!D) { document.getElementById('subtitle').textContent = 'demo_data.js not found — run docs/architecture/build_demo_data.py'; return; }
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const j = (o, max) => { let s = JSON.stringify(o, null, 1); if (max && s.length > max) s = s.slice(0, max) + '\n…'; return esc(s); };
+  const img = (f, cap) => `<figure><img src="data:image/jpeg;base64,${f.jpg}" alt=""><figcaption>${cap ?? (f.t.toFixed(2) + ' s')}</figcaption></figure>`;
+  const usd = (x) => '$' + (x ?? 0).toFixed(4);
+  const stepIds = D.graph.nodes.filter(n => n.kind === 'step').map(n => n.id);
+  const stepColor = (id) => id === 'background' || id === 'unknown' ? 'var(--bgseg)' : `var(--s${(stepIds.indexOf(id) % 6) + 1})`;
+  const short = (id) => id.replace(/^s\d+_/, '').replace(/_/g, ' ');
+  const dur = D.episode.duration_s;
+
+  $('#subtitle').textContent = `${D.graph.name} · episode ${D.episode.id} · ${dur.toFixed(1)} s clip · verdict ${D.verdict.verdict} (quality ${D.verdict.quality_score}/5) · ${usd(D.cost.total.usd)} · ${D.verdict.timing_s.total.toFixed(0)} s wall`;
+
+  /* ------------------------------------------------------------------ stages */
+  const S = [];
+  const failing = D.predicate_checks.filter(c => c.holds === false);
+  const unknown = D.predicate_checks.filter(c => c.holds === null);
+  const win = (i) => D.frames['window_' + i] || [];
+
+  S.push({ id: 'input', lane: 'episode', k: 'Input', n: 'Demonstration video', io: 'mp4 + manifest row', files: ['out/manifest_demo.jsonl', 'procqc/audit/manifest.py'],
+    title: 'Input: one demonstration recording and the task it claims to perform',
+    lead: 'Every episode enters as a video file plus one manifest row naming the task graph that defines the procedure.',
+    render: () => `
+      <div class="card"><h4>Real input</h4>
+        <div class="kv"><b>video</b><code>${esc(D.episode.video)}</code><b>duration</b><span>${dur.toFixed(2)} s</span><b>frames</b><span>${D.episode.width ?? '—'}×${D.episode.height ?? '—'} @ ${D.episode.fps ?? '—'} fps</span><b>task</b><code>${esc(D.episode.task_id)}</code></div>
+        <p class="note">${esc(D.episode.note)}</p>
+        <h4 style="margin-top:10px">Manifest row (out/manifest_demo.jsonl)</h4>
+        <pre>${j({episode_id: D.episode.id, video: D.episode.video, graph: 'out/hairdryer_graph.yaml', task_family: D.episode.task_id})}</pre>
+      </div>
+      <div class="card"><h4>What the camera recorded (12 evenly spaced frames)</h4>
+        <div class="frames small">${D.frames.input_strip.map(f => img(f)).join('')}</div>
+        <p class="note">A human reviewer would watch ${dur.toFixed(0)} seconds. The pipeline instead looks at ~${Object.values(D.frames).reduce((a, v) => a + v.length, 0)} chosen frames, most of them only through a small model.</p>
+      </div>` });
+
+  S.push({ id: 'graph', lane: 'offline', k: 'Offline, once per task', n: 'Task graph builder', io: 'SOP text → graph.yaml', files: ['procqc/graph/draft.py', 'procqc/graph/schema.py', 'procqc/graph/linter.py', 'procqc/graph/from_demos.py', 'procqc/graph/cli.py'],
+    title: 'Task graph builder: turn the written procedure into a checkable graph',
+    lead: 'An LLM drafts the graph from the SOP; a linter rejects structurally broken drafts and the drafter repairs them. The result is the single source of truth every later stage consults. Built once per task, not per episode.',
+    render: () => `
+      <div class="card"><h4>Input: the SOP as written (out/hairdryer_sop.md)</h4><pre>${esc(D.sop)}</pre>
+        <h4>Drafting call</h4>
+        <div class="kv"><b>model</b><span>${esc(D.graph.provenance?.model)}</span><b>tokens</b><span>${esc((D.graph.provenance?.notes || []).join(' · '))}</span><b>lint</b><span>${D.graph.lint.length === 0 ? '<span class="chip ok">0 issues</span>' : D.graph.lint.map(l => `<span class="chip warn">${esc(l.code)}</span>`).join('')}</span></div>
+      </div>
+      <div class="card"><h4>Output: ${D.graph.nodes.filter(n => n.kind==='step').length} steps, ${D.graph.edges.length} typed edges, ${D.graph.objects.length} objects</h4>
+        <div class="chips">${D.graph.objects.map(o => `<span class="chip">${esc(o.name)} <span style="color:var(--muted)">${esc(o.category)}</span></span>`).join('')}</div>
+        <div class="graphviz">${D.graph.nodes.filter(n => n.kind === 'step').map(n => `<div class="gnode ${n.mandatory_terminal ? 'term' : ''}" style="border-left:4px solid ${stepColor(n.id)}"><div class="id">${esc(n.id)}</div><div>${esc(n.description)}</div><div class="pe">pre: ${esc(n.preconditions.join(', ') || '—')}</div><div class="pe">eff: ${esc(n.effects.join(', ') || '—')}</div>${n.mandatory_terminal ? '<div class="pe" style="color:var(--bad)">mandatory terminal</div>' : ''}${n.end_rule ? `<div class="pe">end rule: ${esc(n.end_rule)}</div>` : ''}</div>`).join('')}</div>
+        <details style="margin-top:8px"><summary>Edges, initial state and goal</summary>
+          <pre>${esc(D.graph.edges.map(e => `${e.source} —${e.relation}→ ${e.target}`).join('\n'))}\n\ninitial: ${esc(D.graph.initial_state.join(', '))}\ngoal:    ${esc(D.graph.goal.join(', '))}</pre>
+        </details>
+        <details><summary>Mermaid source</summary><pre>${esc(D.graph.mermaid)}</pre></details>
+      </div>` });
+
+  S.push({ id: 'bounds', lane: 'episode', k: 'Signals (free)', n: 'Boundary proposals', io: 'video → 19 windows', files: ['procqc/signals/frames.py', 'procqc/signals/boundaries.py', 'procqc/signals/tracking_lightwheel.py'],
+    title: 'Boundary proposals: cut the clip where the hands go quiet',
+    lead: 'A frame-difference motion signal (no model, no cost) is smoothed and its prominent minima become candidate step boundaries. Hand tracking or robot proprioception can replace it when available.',
+    render: () => `
+      <div class="card"><h4>Motion activity signal → ${D.windows.length} windows</h4>
+        <div class="kv"><b>proposer</b><span>${esc(D.options.proposer)}</span><b>min segment</b><span>${D.options.min_dur_s} s</span><b>min gap</b><span>${D.options.min_gap_s} s</span><b>prominence</b><span>${D.options.trans_prom} of signal span</span><b>snap candidates</b><span>${D.candidates.length} dense minima</span></div>
+        <p class="note">The chart above shows the signal (grey line) and the windows (ticks). Long steady activity — coiling the cord for 30 s — is split into repetition-sized windows so the localizer never sees more than a few seconds at once.</p>
+        <pre>${j(D.windows.slice(0, 8))}…</pre>
+      </div>
+      <div class="card"><h4>Output shape</h4><pre>BoundaryProposal(\n  segments=[(0.2, 2.1), (2.1, 3.9), …],   # ${D.windows.length} windows\n  candidates=[…${D.candidates.length} times…],       # for snapping later\n  source="motion")</pre>
+        <p class="note">Cost: $0. Wall time is a single pass over the video at 5 fps, 96 px.</p></div>` });
+
+  S.push({ id: 'localize', lane: 'episode', k: 'VLM · small', n: 'Step localizer', io: '3 frames/window → step label', files: ['procqc/localize/scorer.py', 'procqc/localize/decode.py', 'procqc/localize/localizer.py', 'procqc/localize/types.py'],
+    title: 'Step localizer: which step is each window showing?',
+    lead: 'For every window the vision model sees 3 frames and a short candidate list built from the graph: steps executable right now, recently seen steps, background, unknown. A beam decoder then picks the most likely sequence under a soft graph prior — strong visual evidence can still override the prior, so out-of-order steps reach the verifier.',
+    render: () => {
+      const segs = D.localization.segments;
+      return `
+      <div class="card full"><h4>Input to the scorer: 3 frames per window with the candidate list (first 6 of ${D.windows.length} windows)</h4>
+        <div class="grid3">${D.windows.slice(0, 6).map((w, i) => `<div><div class="frames small">${win(i).map(f => img(f)).join('')}</div><div class="note">window ${i}: ${w.start.toFixed(1)}–${w.end.toFixed(1)} s · candidates: <code>${esc((D.symbolic.executable_after_each[Math.min(i, D.symbolic.executable_after_each.length-1)]?.executable || []).map(short).join(', '))}</code>, recent, background, unknown</div></div>`).join('')}</div>
+      </div>
+      <div class="card"><h4>Output: ${segs.length} segments, decode score ${D.localization.decode_score}</h4>
+        <table><tr><th>span</th><th>label</th><th>conf</th><th>windows</th><th>evidence the model wrote</th></tr>
+        ${segs.map(s => `<tr><td>${s.start.toFixed(1)}–${s.end.toFixed(1)} s</td><td><span class="stepbadge" style="border-color:${stepColor(s.label)};color:${stepColor(s.label)}">${esc(short(s.label))}</span></td><td>${s.confidence}</td><td>${s.n_windows}</td><td class="note">${esc(s.evidence.split(' | ')[0])}</td></tr>`).join('')}</table>
+      </div>
+      <div class="card"><h4>Step sequence handed to the verifiers</h4><pre>${j(D.localization.step_sequence)}</pre>
+        <div class="kv"><b>calls</b><span>${D.cost.by_stage.localize.calls} live, ${D.cost.by_stage.localize.cache_hits} served from cache</span><b>cost</b><span>${usd(D.cost.by_stage.localize.usd)} this run (≈ $0.05 per 30 s when uncached)</span><b>wall</b><span>${D.cost.by_stage.localize.wall_s} s</span></div>
+        <p class="note">Each window is a small, self-contained question — exactly the kind that a distilled 256M-parameter head can later answer in milliseconds (see the item log stage).</p></div>`; } });
+
+  S.push({ id: 'refine', lane: 'episode', k: 'VLM · small', n: 'Boundary refinement', io: '8-frame strip → first frame of next step', files: ['procqc/localize/refine.py'],
+    title: 'Boundary refinement: find the exact frame where the next step begins',
+    lead: 'Window edges are coarse (~1 s). For each join between two different labels the model sees 8 timestamped frames across ±1.5 s and names the first frame of the next step, using the node’s own start/end rule when the graph has one. The join moves there and snaps to the nearest motion minimum.',
+    render: () => `
+      <div class="card full"><h4>Input strip around the coil-cord → open-drawer join (${(40 - D.options.refine_span_s).toFixed(1)}–${(40 + D.options.refine_span_s).toFixed(1)} s)</h4>
+        <div class="frames">${D.frames.refine_strip.map(f => img(f)).join('')}</div>
+        <p class="note">Question asked: “Which is the first frame in which <i>Open drawer</i> has started? Rule: ${esc(D.graph.nodes.find(n => n.id==='s04_open_drawer')?.start_rule || 'first hand contact with the drawer')}.” Answer becomes the new boundary at ${D.segments[3].start.toFixed(3)} s.</p>
+      </div>
+      <div class="card"><h4>Output: refined joins</h4><table><tr><th>join</th><th>time</th></tr>${D.segments.slice(1).map((s, i) => `<tr><td>${esc(short(D.segments[i].label))} → ${esc(short(s.label))}</td><td>${s.start.toFixed(3)} s</td></tr>`).join('')}</table></div>
+      <div class="card"><h4>Cost and value</h4><div class="kv"><b>calls</b><span>${D.cost.by_stage.refine.calls} live, ${D.cost.by_stage.refine.cache_hits} cached</span><b>cost</b><span>${usd(D.cost.by_stage.refine.usd)} (≈ $0.01 per join uncached)</span><b>wall</b><span>${D.cost.by_stage.refine.wall_s} s</span></div>
+        <p class="note">Measured on Lightwheel footage: mean start error 1.39 s → 0.65 s. This is the most expensive stage per episode when uncached (~40 %), and the first candidate for a distilled head.</p></div>` });
+
+  S.push({ id: 'symbolic', lane: 'episode', k: 'Symbolic (free)', n: 'Graph verifier', io: 'step sequence → violations', files: ['procqc/graph/ops.py'],
+    title: 'Symbolic graph verifier: replay the sequence against the graph',
+    lead: 'No model here. The sequence is replayed on the task graph: preconditions must be satisfied, mandatory terminal steps must be reached, the goal must be met. Violations carry a taxonomy kind and RegulAR’s impact score.',
+    render: () => `
+      <div class="card"><h4>Input</h4><pre>verify_sequence(graph, ${j(D.symbolic.sequence)})</pre>
+        <h4>Executable set after each step (what the localizer was allowed to pick)</h4>
+        <pre>${esc(D.symbolic.executable_after_each.map(e => `${(e.after || 'start').padEnd(34)} → ${e.executable.map(short).join(', ')}`).join('\n'))}</pre></div>
+      <div class="card"><h4>Output: VerifyResult</h4>
+        <div class="chips">${D.symbolic.ok ? '<span class="chip ok">ok</span>' : D.symbolic.violations.map(v => `<span class="chip bad">${esc(v.kind)}</span>`).join('')}<span class="chip">impact ${D.symbolic.impact}</span></div>
+        <pre>${j({violations: D.symbolic.violations, completed: D.symbolic.completed, final_state: D.symbolic.final_state, impact: D.symbolic.impact})}</pre>
+        <p class="note">Only symbolic evidence so far: the drawer-close step never appeared. Whether the drawer really stayed open is a question for the frames.</p></div>` });
+
+  S.push({ id: 'effects', lane: 'episode', k: 'VLM · small', n: 'Effect verifier', io: 'before/after frames → predicate truth', files: ['procqc/verify/effects.py'],
+    title: 'Effect verifier: did each step actually change the world as the graph says?',
+    lead: 'For every localized step the two sharpest frames just before and just after it are shown to the model, which answers each precondition and effect predicate as true, false or not visible. Initial state is checked on the first frames, the goal on the last. Signal predicates with no sensor fall back to vision and are marked as such.',
+    render: () => {
+      const byStep = {};
+      D.predicate_checks.forEach(c => (byStep[c.step] ||= []).push(c));
+      const order = ['__initial__', ...D.symbolic.sequence, '__goal__'];
+      return `
+      <div class="card full"><h4>Frames used for the last step and the goal (as chosen by sharpness)</h4>
+        <div class="grid2">
+          <div><div class="frames">${(D.frames['effect_s05_place_in_drawer'] || []).map((f, i) => img(f, (i < 2 ? 'before ' : 'after ') + f.t.toFixed(2) + ' s')).join('')}</div><div class="note">s05 place in drawer: preconditions on the left pair, effects on the right pair.</div></div>
+          <div><div class="frames">${(D.frames['effect___goal__'] || []).map(f => img(f, 'end ' + f.t.toFixed(2) + ' s')).join('')}</div><div class="note">goal predicates checked on the final frames.</div></div>
+        </div></div>
+      <div class="card full"><h4>Output: ${D.predicate_checks.length} predicate checks · ${failing.length} unmet · ${unknown.length} not visible → unknown</h4>
+        <table><tr><th>step</th><th>predicate</th><th>role</th><th>expected</th><th>before</th><th>after</th><th>holds</th><th>conf</th><th>checker</th><th>evidence</th></tr>
+        ${order.flatMap(s => (byStep[s] || []).map(c => `<tr class="${c.holds === false ? 'bad' : c.holds === null ? 'unk' : ''}"><td><code>${esc(s.replace(/^__|__$/g, ''))}</code></td><td><code>${esc(c.predicate)}</code></td><td>${esc(c.role)}</td><td>${c.expected}</td><td>${c.before === null ? '?' : c.before}</td><td>${c.after === null ? '?' : c.after}</td><td>${c.holds === null ? 'unknown' : c.holds ? '✓' : '✗'}</td><td>${c.confidence}</td><td>${esc(c.checker_used === 'vision(fallback)' ? c.checker + ' → vision' : c.checker)}</td><td class="note">${esc(c.evidence)}</td></tr>`)).join('')}</table>
+        <div class="kv" style="margin-top:8px"><b>calls</b><span>${D.cost.by_stage.effects.calls} live, ${D.cost.by_stage.effects.cache_hits} cached</span><b>tokens</b><span>${D.cost.by_stage.effects.prompt_tokens} in / ${D.cost.by_stage.effects.completion_tokens} out (${D.cost.by_stage.effects.reasoning_tokens} reasoning)</span><b>cost</b><span>${usd(D.cost.by_stage.effects.usd)}</span><b>wall</b><span>${D.cost.by_stage.effects.wall_s} s</span></div>
+      </div>`; } });
+
+  S.push({ id: 'reconcile', lane: 'episode', k: 'Rules (free)', n: 'Reconcile', io: 'violations + observations → findings', files: ['procqc/verify/reconcile.py'],
+    title: 'Reconcile: merge symbolic violations with what the frames showed',
+    lead: 'Deterministic rules turn the two evidence streams into findings with a status. An omission whose effects were already visible at the start is suppressed (pre-satisfied off camera); one whose effects appear later goes to review; one absent at start and end is confirmed. Here the goal predicate IsOpen(drawer) is visibly still true, so early termination is confirmed rather than merely suspected.',
+    render: () => `
+      <div class="card"><h4>Input</h4><pre>symbolic: ${esc(D.symbolic.violations.map(v => v.kind + ' — ' + v.detail).join('\n          '))}\nframes:   ${failing.length} unmet predicate(s): ${esc(failing.map(c => `${c.predicate}=${c.expected} after ${c.step}`).join('; '))}\n          ${unknown.length} unknown (not visible)</pre></div>
+      <div class="card"><h4>Output: ${D.findings.length} findings</h4>
+        ${D.findings.map(f => `<div class="gnode" style="margin-bottom:8px;border-left:4px solid var(--bad)"><div><span class="chip bad">${esc(f.kind)}</span> <span class="chip">${esc(f.status)}</span> <span class="chip">conf ${f.confidence}</span> <span class="chip">impact ${f.impact}</span></div><div style="margin-top:6px">${esc(f.detail)}</div><div class="pe" style="margin-top:4px">reasons: ${esc(f.reasons.join(' · '))}</div></div>`).join('')}
+        <p class="note">The taxonomy rules live in code, not in a prompt: this stage costs nothing and is fully auditable.</p></div>` });
+
+  S.push({ id: 'adjudicate', lane: 'episode', k: 'VLM · 3 calls per finding', n: 'Adjudicator', io: 'evidence packet → confirm / reject', files: ['procqc/adjudicate/evidence.py', 'procqc/adjudicate/adjudicator.py', 'procqc/rubric.py'],
+    title: 'Adjudicator: narrate, classify, then argue against yourself',
+    lead: 'Each finding gets an evidence packet: the relevant frames, the local task-graph neighbourhood, the predicate observations and the taxonomy boundary rules for that error type. Stage 1 narrates the frames without being told what is suspected. Stage 2 classifies against the rules. Stage 3 makes the strongest case that stage 2 is wrong; disagreement lowers confidence and routes to a human.',
+    render: () => D.findings.map((f, k) => { const a = f.adjudication || {}; return `
+      <div class="card full"><h4>Finding ${k + 1}: ${esc(f.kind)} — evidence frames</h4>
+        <div class="frames">${(D.frames['adjudicate_' + k] || []).map(f2 => img(f2)).join('')}</div>
+        <div class="grid3" style="margin-top:10px">
+          <div class="gnode"><div class="pe">1 · narrate (images sent once)</div><div>${esc(a.narration)}</div></div>
+          <div class="gnode"><div class="pe">2 · classify against rules</div><div><span class="chip ${a.decision === 'confirm' ? 'bad' : 'ok'}">${esc(a.decision)}</span> <span class="chip">${esc(a.final_kind)}</span> <span class="chip">conf ${a.confidence}</span>${a.boundary_rule_applied ? ` <span class="chip info">rule: ${esc(a.boundary_rule_applied)}</span>` : ''}</div><div style="margin-top:6px">${esc(a.rationale)}</div></div>
+          <div class="gnode"><div class="pe">3 · devil's advocate — ${a.advocate_agrees ? 'agrees' : 'disagrees'}</div><div>${esc(a.advocate_argument)}</div></div>
+        </div>
+        <div class="note" style="margin-top:6px">disposition hint: <code>${esc(a.disposition_hint)}</code></div>
+      </div>`; }).join('') + `
+      <div class="card full"><div class="kv"><b>calls</b><span>narrate ${D.cost.by_stage.adjudicate_narrate.calls} (+${D.cost.by_stage.adjudicate_narrate.cache_hits} cached) · classify ${D.cost.by_stage.adjudicate_classify.calls} · advocate ${D.cost.by_stage.adjudicate_advocate.calls}</span><b>cost</b><span>${usd(D.cost.by_stage.adjudicate_narrate.usd + D.cost.by_stage.adjudicate_classify.usd + D.cost.by_stage.adjudicate_advocate.usd)} for ${D.findings.length} findings</span></div>
+        <p class="note">Confidence values follow the written rubric in procqc/rubric.py (what 0.95 vs 0.7 must mean), so they are comparable across stages and can be calibrated against human labels later.</p></div>` });
+
+  S.push({ id: 'verdict', lane: 'episode', k: 'Rules (free)', n: 'Router & verdict', io: 'findings → verdict JSON', files: ['procqc/adjudicate/router.py', 'procqc/adjudicate/verdict.py', 'procqc/pipeline.py', 'procqc/pricing.py'],
+    title: 'Router and verdict: one JSON per episode, with its own bill',
+    lead: 'The router decides whether a human must look (escalation, advocate disagreement, low confidence, high impact, or a deterministic audit sample). The verdict carries the per-segment tags, all findings with their adjudication, every predicate check, and the exact token and dollar cost by stage.',
+    render: () => `
+      <div class="card"><h4>Output: episode verdict</h4>
+        <div class="verdict-big" style="color:var(--bad)">${esc(D.verdict.verdict)}</div>
+        <div class="chips"><span class="chip">quality ${D.verdict.quality_score}/5</span><span class="chip ${D.verdict.route_to_human ? 'warn' : 'ok'}">route to human: ${D.verdict.route_to_human}</span>${Object.entries(D.verdict.counts).map(([k, v]) => `<span class="chip">${esc(k)} ${v}</span>`).join('')}</div>
+        <h4 style="margin-top:10px">Segment tags</h4>
+        <div class="steps">${D.segments.map(s => `<span class="stepbadge" style="border-color:${s.tag === 'error' ? 'var(--bad)' : stepColor(s.label)};color:${s.tag === 'error' ? 'var(--bad)' : stepColor(s.label)}">${s.start.toFixed(1)}–${s.end.toFixed(1)} ${esc(short(s.label))} · ${esc(s.tag)}</span>`).join('')}</div>
+        <p class="note">Segments tagged <i>error</i> or <i>recovery</i> are kept, not cut: the taxonomy’s tag-and-retain rule, so downstream training can choose what to use.</p>
+        <details><summary>Verdict JSON (abridged)</summary><pre>${j({schema_version: D.verdict.schema_version, episode_id: D.episode.id, task_id: D.episode.task_id, verdict: D.verdict.verdict, quality_score: D.verdict.quality_score, route_to_human: D.verdict.route_to_human, step_sequence: D.symbolic.sequence, segments: D.segments, findings: D.findings.map(f => ({kind: f.kind, status: f.final_status, step: f.step, confidence: f.confidence, adjudication: {decision: f.adjudication?.decision, confidence: f.adjudication?.confidence}})), counts: D.verdict.counts, cost: {total: D.cost.total}}, 4000)}</pre></details>
+      </div>
+      <div class="card"><h4>Cost and time by stage (this episode)</h4>
+        <table><tr><th>stage</th><th>calls</th><th>cached</th><th>tokens in</th><th>tokens out</th><th>reasoning</th><th>USD</th><th>wall s</th></tr>
+        ${Object.entries(D.cost.by_stage).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.calls}</td><td>${v.cache_hits}</td><td>${v.prompt_tokens}</td><td>${v.completion_tokens}</td><td>${v.reasoning_tokens}</td><td>${usd(v.usd)}</td><td>${v.wall_s}</td></tr>`).join('')}
+        <tr><th>total</th><th>${D.cost.total.calls}</th><th>${D.cost.total.cache_hits}</th><th>${D.cost.total.prompt_tokens}</th><th>${D.cost.total.completion_tokens}</th><th>${D.cost.total.reasoning_tokens}</th><th>${usd(D.cost.total.usd)}</th><th>${D.cost.total.wall_s}</th></tr></table>
+        <p class="note">Localize and refine were served from the on-disk response cache in this run (identical frames and prompts as the previous run). Uncached, a 53 s episode costs about $0.22–0.27 with this model; reasoning tokens are ~75–80 % of output tokens, which is why distilled heads are the main cost lever.</p></div>` });
+
+  S.push({ id: 'itemlog', lane: 'side', k: 'Side output', n: 'Item log → training export', io: 'every VLM decision → Laya record', side: true, files: ['procqc/itemlog/store.py', 'procqc/itemlog/join.py', 'procqc/itemlog/export.py'],
+    title: 'Item log and training export: every small decision becomes a training example',
+    lead: 'Each question the pipeline asked the vision model — is this window active, which step is it, has the next step started, does this predicate hold, was the carried object released — is logged with its frames and the teacher’s answer. Human labels and adjudication outcomes are joined on top. The export writes Laya / Jev-compatible records with soft targets so a 256M-parameter head can be trained to answer the same questions in milliseconds on a GPU.',
+    render: () => `
+      <div class="card"><h4>Export summary (3 episodes)</h4><pre>${j(D.export.summary, 1800)}</pre></div>
+      <div class="card"><h4>Real exported records for this task (one per question type)</h4>
+        ${D.export.samples.map(r => `<div class="gnode" style="margin-bottom:8px;display:grid;grid-template-columns:${r.thumb ? '110px 1fr' : '1fr'};gap:10px">${r.thumb ? `<img src="data:image/jpeg;base64,${r.thumb}" style="width:110px;border-radius:6px;border:1px solid var(--line)">` : ''}<div><div class="pe">${esc(r.source)} · ${esc(r.question.type)} · ${r.n_images} image(s)</div><div style="margin:4px 0">${esc(r.question.instructions)}</div><div class="pe">state: ${esc(r.state_text)}</div><div class="pe">label ${esc(JSON.stringify(r.label))} · target ${esc(JSON.stringify(r.target))}</div></div></div>`).join('')}
+      </div>` });
+
+  S.push({ id: 'audit', lane: 'side', k: 'Batch & audit', n: 'Audit tooling', io: 'manifest → verdicts → metrics', side: true, files: ['procqc/audit/runner.py', 'procqc/audit/metrics.py', 'procqc/audit/temporal_metrics.py', 'procqc/audit/labels.py', 'procqc/audit/inject.py', 'procqc/audit/review.py'],
+    title: 'Audit tooling: run a corpus, measure against humans, inject known errors',
+    lead: 'A resume-safe batch runner processes a manifest with N workers and aggregates cost per stage. Against dual human labels it reports per-kind precision/recall/F1, clean-episode false-positive rate with confidence interval, the literature metrics (EDA, AUC, errF1@50, MoF, F1@k, Edit) and calibration (ECE). Synthetic injection re-cuts real clips to measure recall for free.',
+    render: () => `
+      <div class="card"><h4>This batch: out/audit_demo3</h4>
+        <table><tr><th>episode</th><th>task</th><th>verdict</th><th>q</th><th>findings</th><th>calls</th><th>cached</th><th>USD</th></tr>
+        ${D.episodes.map(e => `<tr><td>${esc(e.episode_id)}</td><td>${esc(e.task_id)}</td><td><span class="chip ${e.verdict === 'clean' ? 'ok' : 'bad'}">${esc(e.verdict)}</span></td><td>${e.quality_score}</td><td>${e.n_findings}</td><td>${e.calls}</td><td>${e.cache_hits}</td><td>${usd(e.usd)}</td></tr>`).join('')}</table>
+        <div class="kv" style="margin-top:8px"><b>elapsed</b><span>${D.run_summary.elapsed_s} s for ${D.run_summary.n_episodes} episodes, ${D.run_summary.n_error} errors</span><b>total</b><span>${usd(D.run_summary.usage_total.usd)} · ${D.run_summary.usage_total.calls} live calls</span><b>per episode</b><span>${usd(D.run_summary.usage_per_episode.usd)}</span></div>
+        <p class="note">The same task graph judged the full 55 s recording <b>clean</b> and its 44 s truncation <b>flagged_major</b>; the candies task (a different graph, 3 repeated pick/put cycles) came back clean from the checker alone.</p></div>
+      <div class="card"><h4>Cost by stage across the batch</h4>
+        <table><tr><th>stage</th><th>calls</th><th>cached</th><th>USD</th><th>USD / episode</th><th>wall s</th></tr>
+        ${Object.entries(D.run_summary.cost_by_stage).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.calls}</td><td>${v.cache_hits}</td><td>${usd(v.usd)}</td><td>${usd(v.usd_per_episode)}</td><td>${v.wall_s}</td></tr>`).join('')}</table>
+        <h4 style="margin-top:10px">Commands</h4>
+        <pre>python -m procqc.audit.cli run       out/manifest.jsonl out/audit --workers 2
+python -m procqc.audit.cli metrics   out/audit/verdicts labels.jsonl
+python -m procqc.audit.cli inject    graph.yaml --verdict clean.json --video ep.mp4 --kinds early_termination,omission
+python -m procqc.itemlog.cli export  out/laya_training_data out/export --format laya --graph graph.yaml</pre></div>` });
+
+  /* ------------------------------------------------------------------ flow diagram */
+  function buildFlow() {
+    const el = $('#flow');
+    const node = (s, i) => `<div class="node ${s.side ? 'side' : ''}" data-i="${i}" title="${esc(s.title)}"><div class="k">${esc(s.k)}</div><div class="n">${esc(s.n)}</div><div class="io">${esc(s.io)}</div></div>`;
+    const arrow = (i) => `<div class="arrow" data-a="${i}"><div class="pkt"></div></div>`;
+    const idx = (id) => S.findIndex(s => s.id === id);
+    const main = ['input', 'bounds', 'localize', 'refine', 'symbolic', 'effects', 'reconcile', 'adjudicate', 'verdict'];
+    let h = `<div class="lane-title">Offline — once per task</div><div class="lane">${node(S[idx('graph')], idx('graph'))}<div class="arrow lit-static" style="background:var(--line)"></div><div class="note" style="max-width:520px">graph.yaml is consulted by the localizer (candidate lists), the graph verifier, the effect verifier (predicates), reconcile (boundary rules) and the adjudicator (local subgraph + rules).</div></div>`;
+    h += `<div class="lane-title">Per episode</div><div class="lane">`;
+    main.forEach((id, k) => { h += node(S[idx(id)], idx(id)); if (k < main.length - 1) h += arrow(idx(main[k + 1])); });
+    h += `</div><div class="lane-title">Side outputs</div><div class="lane">${node(S[idx('itemlog')], idx('itemlog'))}<div style="width:24px"></div>${node(S[idx('audit')], idx('audit'))}<div class="note" style="margin-left:16px;max-width:560px">The item log records every model decision from the localizer, refiner and effect verifier; the audit tools consume verdict JSONs from many episodes.</div></div>`;
+    h += `<div class="stage-nav" id="stageNav">${S.map((s, i) => `<button data-i="${i}">${i + 1}. ${esc(s.n)}</button>`).join('')}</div>`;
+    el.innerHTML = h;
+    el.querySelectorAll('.node, .stage-nav button').forEach(n => n.addEventListener('click', () => { stop(); show(+n.dataset.i); }));
+  }
+
+  /* ------------------------------------------------------------------ timeline */
+  const allFrames = Object.values(D.frames).flat().sort((a, b) => a.t - b.t);
+  function drawTimeline(stageIdx) {
+    const svg = $('#tl'); const W = Math.max(600, svg.clientWidth || 1000), H = 210, L = 10, R = W - 10, x = (t) => L + (R - L) * t / dur;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.removeAttribute('preserveAspectRatio');
+    const id = S[stageIdx].id; const order = S.map(s => s.id);
+    const reached = (k) => order.indexOf(k) <= stageIdx;
+    let s = '';
+    // signal
+    if (reached('bounds')) {
+      const vmax = Math.max(...D.signal.v) || 1;
+      const pts = D.signal.t.map((t, i) => `${x(t).toFixed(1)},${(120 - 70 * D.signal.v[i] / vmax).toFixed(1)}`).join(' ');
+      s += `<polyline points="${pts}" fill="none" stroke="var(--muted)" stroke-width="1.2" opacity=".8"/>`;
+      D.windows.forEach(w => { s += `<line x1="${x(w.start)}" x2="${x(w.start)}" y1="122" y2="134" stroke="var(--muted)" stroke-width="1"/>`; });
+      s += `<text x="${L}" y="146" fill="var(--muted)" font-size="10">motion activity · ${D.windows.length} proposed windows</text>`;
+    }
+    // segments
+    if (reached('localize')) {
+      const segs = reached('refine') ? D.segments : D.localization.segments;
+      segs.forEach(sg => {
+        const err = reached('verdict') && sg.tag === 'error';
+        s += `<rect x="${x(sg.start)}" y="30" width="${Math.max(1, x(sg.end) - x(sg.start))}" height="26" rx="4" fill="${err ? 'var(--bad)' : stepColor(sg.label)}" opacity=".85"/>`;
+        if (x(sg.end) - x(sg.start) > 60) s += `<text x="${x(sg.start) + 5}" y="47" fill="#0b0f14" font-size="11" font-weight="600">${esc(short(sg.label))}</text>`;
+      });
+      s += `<text x="${L}" y="22" fill="var(--muted)" font-size="10">${reached('refine') ? 'localized steps, boundaries refined' : 'localized steps (window granularity)'}</text>`;
+      if (reached('refine')) D.segments.slice(1).forEach(sg => { s += `<line x1="${x(sg.start)}" x2="${x(sg.start)}" y1="26" y2="60" stroke="var(--text)" stroke-width="1.5"/>`; });
+    }
+    // effect check frames
+    if (reached('effects')) {
+      D.predicate_checks.forEach(c => (c.frame_times || []).forEach(t => { s += `<circle cx="${x(t)}" cy="70" r="3" fill="${c.holds === false ? 'var(--bad)' : c.holds === null ? 'var(--muted)' : 'var(--ok)'}" opacity=".9"/>`; }));
+      s += `<text x="${L}" y="86" fill="var(--muted)" font-size="10">frames judged by the effect verifier (green holds · red unmet · grey not visible)</text>`;
+    }
+    // findings
+    if (reached('reconcile')) {
+      D.findings.forEach((f, k) => { const t = f.segment_start ?? dur; const nearRight = x(t) > W * 0.7; s += `<g><line x1="${x(t)}" x2="${x(t)}" y1="10" y2="200" stroke="var(--bad)" stroke-dasharray="4 3"/><text x="${x(t) + (nearRight ? -4 : 4)}" y="${170 + 14 * k}" fill="var(--bad)" font-size="11" text-anchor="${nearRight ? 'end' : 'start'}">${esc(f.kind)}${f.step ? ' @ ' + esc(short(f.step)) : ' (missing ' + esc(f.missing.map(short).join(', ')) + ')'}</text></g>`; });
+    }
+    // axis
+    for (let t = 0; t <= dur; t += 5) s += `<line x1="${x(t)}" x2="${x(t)}" y1="196" y2="202" stroke="var(--line)"/><text x="${x(t)}" y="209" fill="var(--muted)" font-size="9" text-anchor="middle">${t}s</text>`;
+    s += `<line x1="${L}" x2="${R}" y1="196" y2="196" stroke="var(--line)"/>`;
+    s += `<line id="playhead" x1="0" x2="0" y1="8" y2="200" stroke="var(--accent)" stroke-width="1.5" opacity="0"/>`;
+    svg.innerHTML = s;
+    $('#tlTitle').textContent = `${D.episode.id}, ${dur.toFixed(1)} s`;
+  }
+  $('#tl').addEventListener('mousemove', (ev) => {
+    const r = ev.currentTarget.getBoundingClientRect(); const t = Math.max(0, Math.min(dur, (ev.clientX - r.left) / r.width * dur));
+    let best = allFrames[0]; for (const f of allFrames) if (Math.abs(f.t - t) < Math.abs(best.t - t)) best = f;
+    const seg = D.segments.find(sg => t >= sg.start && t < sg.end);
+    $('#tlHover').innerHTML = `<img src="data:image/jpeg;base64,${best.jpg}"><div>t = ${t.toFixed(1)} s → nearest judged frame ${best.t.toFixed(2)} s<br>${seg ? `segment: <b style="color:${stepColor(seg.label)}">${esc(short(seg.label))}</b> (${seg.start.toFixed(1)}–${seg.end.toFixed(1)} s, conf ${seg.confidence}, tag ${esc(seg.tag)})` : 'outside localized segments'}</div>`;
+    const ph = $('#playhead'); if (ph) { const W = +$('#tl').getAttribute('viewBox').split(' ')[2]; const px = 10 + (W - 20) * t / dur; ph.setAttribute('x1', px); ph.setAttribute('x2', px); ph.setAttribute('opacity', 1); }
+  });
+  window.addEventListener('resize', () => drawTimeline(cur));
+
+  /* ------------------------------------------------------------------ detail + state */
+  let cur = 0, timer = null;
+  function show(i) {
+    cur = (i + S.length) % S.length; const s = S[cur];
+    document.querySelectorAll('.node').forEach(n => { const k = +n.dataset.i; n.classList.toggle('active', k === cur); n.classList.toggle('done', k < cur && !S[k].side); });
+    document.querySelectorAll('.arrow[data-a]').forEach(a => a.classList.toggle('lit', +a.dataset.a === cur));
+    document.querySelectorAll('#stageNav button').forEach(b => b.classList.toggle('active', +b.dataset.i === cur));
+    $('#detail').innerHTML = `<div class="full"><h2>${cur + 1} / ${S.length} · ${esc(s.title)}</h2><p class="lead">${esc(s.lead)}</p>
+      <div class="chips"><span class="chip acc">${esc(s.k)}</span>${s.files.map(f => `<span class="chip"><code>${esc(f)}</code></span>`).join('')}</div></div>${s.render()}`;
+    drawTimeline(cur);
+    window.location.hash = s.id;
+  }
+  function play() { $('#btnPlay').textContent = '⏸ Pause'; timer = setInterval(() => { if (cur === S.length - 1) { stop(); return; } show(cur + 1); }, +$('#speed').value); }
+  function stop() { $('#btnPlay').textContent = '▶ Play walkthrough'; if (timer) clearInterval(timer); timer = null; }
+  $('#btnPlay').addEventListener('click', () => timer ? stop() : play());
+  $('#btnNext').addEventListener('click', () => { stop(); show(cur + 1); });
+  $('#btnPrev').addEventListener('click', () => { stop(); show(cur - 1); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') { stop(); show(cur + 1); } if (e.key === 'ArrowLeft') { stop(); show(cur - 1); } if (e.key === ' ') { e.preventDefault(); timer ? stop() : play(); } });
+  if (D.dashboard_url) { const a = $('#dashLink'); a.href = D.dashboard_url; a.style.display = 'inline'; }
+
+  buildFlow();
+  const start = Math.max(0, S.findIndex(s => '#' + s.id === window.location.hash));
+  show(start);
+})();
+</script>
+</body>
+</html>

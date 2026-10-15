@@ -1,0 +1,128 @@
+{
+ "scenario": {
+  "activity_type": "",
+  "site_id": "",
+  "location": "Kids room",
+  "scene_type": "",
+  "country": "",
+  "quote": "From: Kids room floor.",
+  "other": {
+   "name": "Return large toys from kids room table or floor to toy bin",
+   "from": "Kids room floor.",
+   "to": "Toy bin / basket."
+  }
+ },
+ "objects": [
+  {
+   "name": "Toys",
+   "role": "Items to be picked up and placed into the bin",
+   "kinds": [
+    "blocks",
+    "cars",
+    "dolls",
+    "plushies"
+   ],
+   "quote": "Toys (blocks, cars, dolls, plushies, etc.)."
+  },
+  {
+   "name": "Toy bin / basket",
+   "role": "Destination receptacle for the toys",
+   "kinds": [
+    "Toy bin",
+    "basket"
+   ],
+   "quote": "To: Toy bin / basket."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "There are 3\u20136 toys present.",
+   "quote": "Items: 3\u20136 toys."
+  },
+  {
+   "fact": "Toys are randomly scattered on the floor and/or table.",
+   "quote": "Position: Randomly scattered on the floor and/or table."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the toys and stand still for 1 second.",
+   "quote": "1. Walk to the toys and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Start with arms in a neutral position. Pick up 1 large toy with both hands, or gather 2\u20133 small items (e.g., blocks) in one cupped hand.",
+   "quote": "2. Start with arms in a neutral position. Pick up 1 large toy with both hands, or gather 2\u20133 small items (e.g., blocks) in one cupped hand."
+  },
+  {
+   "number": 3,
+   "text": "Walk to the bin and stop for 1 second.",
+   "quote": "3. Walk to the bin and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Hold the item(s) directly over the bin opening and place into the bin.",
+   "quote": "4. Hold the item(s) directly over the bin opening and place into the bin."
+  },
+  {
+   "number": 5,
+   "text": "Repeat until the floor is clear.",
+   "quote": "5. Repeat until the floor is clear."
+  }
+ ],
+ "repeat": {
+  "present": true,
+  "step_numbers": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "unit": "1 large toy or 2\u20133 small items",
+  "end_condition": "the floor is clear",
+  "count": "3\u20136 toys",
+  "quote": "Repeat until the floor is clear."
+ },
+ "acceptance": [
+  {
+   "step_number": 4,
+   "criterion": "The item(s) are placed inside the bin.",
+   "quote": "place into the bin."
+  }
+ ],
+ "constraints": [
+  {
+   "rule": "No small parts or items requiring fine manipulation are permitted.",
+   "step_numbers": [],
+   "violation_looks_like": "The person manipulates tiny toy components or items requiring delicate, fine-motor handling.",
+   "quote": "Prohibited Objects: No small parts or items requiring fine manipulation."
+  },
+  {
+   "rule": "Do not throw toys into bin.",
+   "step_numbers": [
+    4
+   ],
+   "violation_looks_like": "A toy is tossed, dropped from a distance, or thrown through the air toward or into the bin.",
+   "quote": "Do not throw toys into bin."
+  },
+  {
+   "rule": "Do not overfill bin.",
+   "step_numbers": [
+    4
+   ],
+   "violation_looks_like": "Toys are piled above the rim of the bin causing items to spill or overflow.",
+   "quote": "Do not overfill bin."
+  }
+ ],
+ "not_modelled": [
+  {
+   "reason": "Instruction about resetting the scene between recording episodes.",
+   "quote": "Reset: Randomize positions each episode."
+  },
+  {
+   "reason": "Instruction on dataset diversity across recordings.",
+   "quote": "Diversity: Vary toy types (blocks, cars, dolls, plushies). Change positions (floor vs. table). Vary number of items (3\u20136). Change bin location."
+  }
+ ]
+}

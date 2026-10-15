@@ -1,0 +1,157 @@
+{
+ "scenario": {
+  "activity_type": "",
+  "site_id": "",
+  "location": "",
+  "scene_type": "",
+  "country": "",
+  "quote": "Name: Return coasters from tables to holder",
+  "other": {
+   "From": "Scattered on coffee/side tables.",
+   "To": "Coaster holder / stacked neatly."
+  }
+ },
+ "objects": [
+  {
+   "name": "coaster",
+   "role": "item to be collected and stacked",
+   "kinds": [
+    "wood",
+    "cork",
+    "stone"
+   ],
+   "quote": "Coasters."
+  },
+  {
+   "name": "table",
+   "role": "surface where coasters are scattered",
+   "kinds": [
+    "coffee table",
+    "side tables"
+   ],
+   "quote": "Scattered across different tables (coffee table, side tables)."
+  },
+  {
+   "name": "coaster holder",
+   "role": "destination container or surface for stacking coasters",
+   "kinds": [],
+   "quote": "Coaster holder / stacked neatly."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "There are 3 to 5 coasters.",
+   "quote": "Items: 3-5 coasters."
+  },
+  {
+   "fact": "Coasters are scattered across different tables.",
+   "quote": "Position: Scattered across different tables (coffee table, side tables)."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the table and stand still for 1 second.",
+   "quote": "1. Walk to the table and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Start with arms in a neutral position. Pick up 1 coaster at a time using a thumb-and-forefinger pinch grip across opposite ends.",
+   "quote": "2. Start with arms in a neutral position. Pick up 1 coaster at a time using a thumb-and-forefinger pinch grip across opposite ends."
+  },
+  {
+   "number": 3,
+   "text": "(If walking, otherwise skip if stationary) Walk to the holder or stack spot and stop for 1 second.",
+   "quote": "3. (If walking, otherwise skip if stationary) Walk to the holder or stack spot and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Place the coaster flat on the holder/stack with edges aligned to the coaster underneath.",
+   "quote": "4. Place the coaster flat on the holder/stack with edges aligned to the coaster underneath."
+  },
+  {
+   "number": 5,
+   "text": "Gently nudge the coaster into place to adjust alignment.",
+   "quote": "5. Gently nudge the coaster into place to adjust alignment."
+  }
+ ],
+ "repeat": {
+  "present": true,
+  "step_numbers": [
+   1,
+   2,
+   3,
+   4,
+   5
+  ],
+  "unit": "coaster",
+  "end_condition": "all coasters are returned to holder or stacked",
+  "count": "3-5",
+  "quote": "Pick up 1 coaster at a time using a thumb-and-forefinger pinch grip across opposite ends."
+ },
+ "acceptance": [
+  {
+   "step_number": 4,
+   "criterion": "The coaster is placed flat on the holder or stack.",
+   "quote": "Place the coaster flat on the holder/stack"
+  },
+  {
+   "step_number": 4,
+   "criterion": "The edges of the coaster are aligned with the coaster underneath.",
+   "quote": "with edges aligned to the coaster underneath."
+  }
+ ],
+ "constraints": [
+  {
+   "rule": "Do not slide coasters off table edges.",
+   "step_numbers": [
+    2
+   ],
+   "violation_looks_like": "A coaster is pushed or dragged over the edge of the table before being lifted.",
+   "quote": "Do not slide coasters off table edges."
+  },
+  {
+   "rule": "Do not stack carelessly (align neatly).",
+   "step_numbers": [
+    4,
+    5
+   ],
+   "violation_looks_like": "A coaster is placed askew or jutting out irregularly from the stack without proper alignment.",
+   "quote": "Do not stack carelessly (align neatly)."
+  },
+  {
+   "rule": "Start pickup with arms in a neutral position.",
+   "step_numbers": [
+    2
+   ],
+   "violation_looks_like": "The person reaches for the coaster without first having arms hanging or resting in a neutral position.",
+   "quote": "Start with arms in a neutral position."
+  },
+  {
+   "rule": "Pick up 1 coaster at a time using a thumb-and-forefinger pinch grip across opposite ends.",
+   "step_numbers": [
+    2
+   ],
+   "violation_looks_like": "Multiple coasters are lifted at once, or a coaster is grasped with a full hand wrap rather than a thumb-and-forefinger pinch grip on opposite ends.",
+   "quote": "Pick up 1 coaster at a time using a thumb-and-forefinger pinch grip across opposite ends."
+  }
+ ],
+ "not_modelled": [
+  {
+   "reason": "Instruction about varying items across recordings.",
+   "quote": "Reset: Vary coaster materials and positions each episode."
+  },
+  {
+   "reason": "Dataset diversity instructions.",
+   "quote": "Diversity: Vary coaster materials (wood, cork, stone). Change positions across different tables (coffee table, side tables). Vary number of coasters (2\u20134)."
+  },
+  {
+   "reason": "Duration / timing requirement checked separately.",
+   "quote": "stand still for 1 second."
+  },
+  {
+   "reason": "Duration / timing requirement checked separately.",
+   "quote": "stop for 1 second."
+  }
+ ]
+}

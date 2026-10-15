@@ -1,0 +1,24 @@
+Name: Return pet toys from floor to pet toy bin
+
+Description:
+Objects:
+Pet toys (plush toys, rubber balls, rope toys, etc.).
+
+From: Floor.
+To: Pet toy bin/basket.
+
+Starting State:
+
+Items: 2–4 pet toys (plush, rubber, rope, ball).
+Position: Scattered on the floor in random positions.
+Reset: Randomize positions and vary toy types each episode.
+
+Constraints / Avoid: Do not throw toys into bin.
+
+Steps:
+1. Walk to the toy and stand still for 1 second.
+2. Start with arms in a neutral position. Pick up the toy with one hand, wrapping your fingers around the widest part.
+3. Walk to the bin and stop for 1 second.
+4. Hold the toy over the bin opening and release.
+
+Diversity: Vary toy types (plush, rubber, rope). Change positions on floor. Vary number of items (2–4). Change bin location.

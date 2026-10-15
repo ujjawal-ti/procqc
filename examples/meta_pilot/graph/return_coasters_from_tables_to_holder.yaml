@@ -1,0 +1,531 @@
+task_id: return_coasters_from_tables_to_holder
+name: Return coasters from tables to holder
+version: 0.1.0
+domain: household
+description: Return scattered coasters from coffee and side tables to the coaster holder, stacking them
+  neatly.
+objects:
+- id: coaster
+  name: coaster
+  category: part
+  aliases:
+  - coasters
+  substitutes: []
+  hazards: []
+  kinds:
+  - wood
+  - cork
+  - stone
+  source:
+    quote: Coasters.
+    inferred: false
+- id: table
+  name: table
+  category: fixture
+  aliases:
+  - coffee table
+  - side tables
+  substitutes: []
+  hazards: []
+  kinds:
+  - coffee table
+  - side tables
+  source:
+    quote: Scattered across different tables (coffee table, side tables).
+    inferred: false
+- id: coaster_holder
+  name: coaster holder
+  category: container
+  aliases:
+  - holder
+  - stack spot
+  substitutes: []
+  hazards: []
+  kinds: []
+  source:
+    quote: Coaster holder / stacked neatly.
+    inferred: false
+initial_state:
+- name: ScatteredOnTable
+  args:
+  - coaster
+  - table
+  value: true
+  checker: vlm_effect
+  scope: global
+- name: InHolder
+  args:
+  - coaster
+  - coaster_holder
+  value: false
+  checker: vlm_effect
+  scope: global
+goal:
+- name: InHolder
+  args:
+  - coaster
+  - coaster_holder
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+- name: Aligned
+  args:
+  - coaster
+  - coaster_holder
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+nodes:
+- id: start
+  name: start
+  kind: start
+  description: Start of task execution.
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Initial setup ready.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+- id: s01_walk_to_table
+  name: walk to table
+  kind: step
+  description: Walk to the table and stand still for 1 second.
+  preconditions: []
+  effects:
+  - name: AtLocation
+    args:
+    - table
+    value: true
+    checker: proprio_pose
+    scope: global
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - table
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Standing stationary at the table.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 1. Walk to the table and stand still for 1 second.
+    inferred: false
+- id: s02_pick_up_coaster
+  name: pick up coaster
+  kind: step
+  description: Start with arms in a neutral position. Pick up 1 coaster at a time using a thumb-and-forefinger
+    pinch grip across opposite ends.
+  preconditions:
+  - name: AtLocation
+    args:
+    - table
+    value: true
+    checker: proprio_pose
+    scope: global
+  effects:
+  - name: IsGrasped
+    args:
+    - coaster
+    value: true
+    checker: gripper_width
+    scope: instance
+  - name: ScatteredOnTable
+    args:
+    - coaster
+    - table
+    value: false
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - coaster
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Single coaster held in pinch grip above the table.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls:
+  - Do not slide coasters off table edges.
+  - Start pickup with arms in a neutral position.
+  - Pick up 1 coaster at a time using a thumb-and-forefinger pinch grip across opposite ends.
+  source:
+    quote: 2. Start with arms in a neutral position. Pick up 1 coaster at a time using a thumb-and-forefinger
+      pinch grip across opposite ends.
+    inferred: false
+- id: s03_walk_to_holder
+  name: walk to holder
+  kind: step
+  description: (If walking, otherwise skip if stationary) Walk to the holder or stack spot and stop for
+    1 second.
+  preconditions:
+  - name: IsGrasped
+    args:
+    - coaster
+    value: true
+    checker: gripper_width
+    scope: instance
+  effects:
+  - name: AtLocation
+    args:
+    - coaster_holder
+    value: true
+    checker: proprio_pose
+    scope: global
+  optional: true
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - coaster_holder
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Standing stationary at the holder or stack spot while holding the coaster.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 3. (If walking, otherwise skip if stationary) Walk to the holder or stack spot and stop for
+      1 second.
+    inferred: false
+- id: s04_place_coaster
+  name: place coaster
+  kind: step
+  description: Place the coaster flat on the holder/stack with edges aligned to the coaster underneath.
+  preconditions:
+  - name: IsGrasped
+    args:
+    - coaster
+    value: true
+    checker: gripper_width
+    scope: instance
+  effects:
+  - name: InHolder
+    args:
+    - coaster
+    - coaster_holder
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: IsGrasped
+    args:
+    - coaster
+    value: false
+    checker: gripper_width
+    scope: instance
+  - name: PlacedFlat
+    args:
+    - coaster
+    - coaster_holder
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: EdgesAligned
+    args:
+    - coaster
+    - coaster_holder
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - coaster
+  - coaster_holder
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Coaster placed flat on the holder or stack.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls:
+  - Do not stack carelessly (align neatly).
+  source:
+    quote: 4. Place the coaster flat on the holder/stack with edges aligned to the coaster underneath.
+    inferred: false
+- id: s05_nudge_alignment
+  name: nudge alignment
+  kind: step
+  description: Gently nudge the coaster into place to adjust alignment.
+  preconditions:
+  - name: InHolder
+    args:
+    - coaster
+    - coaster_holder
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: Aligned
+    args:
+    - coaster
+    - coaster_holder
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: true
+  permitted_repeats: 999
+  target_objects:
+  - coaster
+  - coaster_holder
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Coaster nudged into clean alignment within the holder or stack.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls:
+  - Do not stack carelessly (align neatly).
+  source:
+    quote: 5. Gently nudge the coaster into place to adjust alignment.
+    inferred: false
+- id: end
+  name: end
+  kind: end
+  description: All coasters returned and aligned neatly in the holder.
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Coasters neatly stacked in holder.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+edges:
+- source: start
+  target: s01_walk_to_table
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s01_walk_to_table
+  target: s02_pick_up_coaster
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_coaster
+  target: s03_walk_to_holder
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_coaster
+  target: s04_place_coaster
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s03_walk_to_holder
+  target: s04_place_coaster
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s04_place_coaster
+  target: s05_nudge_alignment
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s05_nudge_alignment
+  target: end
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+provenance:
+  source: llm_draft_v2
+  model: gemini-3.8-flash
+  created_at: '2026-10-12T05:33:02+00:00'
+  notes:
+  - 0 lint warnings at acceptance
+  - 0 inferred elements
+  - usd=0.0395
+metadata: {}
+schema_version: '2'
+scenario:
+  activity_type: ''
+  site_id: ''
+  location: ''
+  scene_type: ''
+  country: ''
+  other:
+    From: Scattered on coffee/side tables.
+    To: Coaster holder / stacked neatly.
+  source:
+    quote: 'Name: Return coasters from tables to holder'
+    inferred: false
+starting_state:
+- description: There are 3 to 5 coasters.
+  objects:
+  - coaster
+  predicates:
+  - name: ItemCount
+    args:
+    - coaster
+    value: true
+    checker: detector
+    scope: global
+  source:
+    quote: 'Items: 3-5 coasters.'
+    inferred: false
+- description: Coasters are scattered across different tables.
+  objects:
+  - coaster
+  - table
+  predicates:
+  - name: ScatteredOnTable
+    args:
+    - coaster
+    - table
+    value: true
+    checker: vlm_effect
+    scope: global
+  source:
+    quote: 'Position: Scattered across different tables (coffee table, side tables).'
+    inferred: false
+repeat_blocks:
+- id: rb01_collect_coasters
+  steps:
+  - s01_walk_to_table
+  - s02_pick_up_coaster
+  - s03_walk_to_holder
+  - s04_place_coaster
+  - s05_nudge_alignment
+  unit: coaster
+  objects:
+  - coaster
+  until:
+  - name: InHolder
+    args:
+    - coaster
+    - coaster_holder
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  until_description: all coasters are returned to holder or stacked
+  count_hint: 3-5
+  source:
+    quote: Pick up 1 coaster at a time using a thumb-and-forefinger pinch grip across opposite ends.
+    inferred: false
+acceptance:
+- id: acc01_placed_flat
+  step: s04_place_coaster
+  objects:
+  - coaster
+  - coaster_holder
+  criterion: The coaster is placed flat on the holder or stack.
+  predicate:
+    name: PlacedFlat
+    args:
+    - coaster
+    - coaster_holder
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: Place the coaster flat on the holder/stack
+    inferred: false
+- id: acc02_edges_aligned
+  step: s04_place_coaster
+  objects:
+  - coaster
+  - coaster_holder
+  criterion: The edges of the coaster are aligned with the coaster underneath.
+  predicate:
+    name: EdgesAligned
+    args:
+    - coaster
+    - coaster_holder
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: with edges aligned to the coaster underneath.
+    inferred: false
+constraints:
+- id: c01_avoid_sliding
+  rule: Do not slide coasters off table edges.
+  applies_to:
+  - s02_pick_up_coaster
+  violation_looks_like: A coaster is pushed or dragged over the edge of the table before being lifted.
+  taxonomy: violation
+  source:
+    quote: Do not slide coasters off table edges.
+    inferred: false
+- id: c02_careless_stacking
+  rule: Do not stack carelessly (align neatly).
+  applies_to:
+  - s04_place_coaster
+  - s05_nudge_alignment
+  violation_looks_like: A coaster is placed askew or jutting out irregularly from the stack without proper
+    alignment.
+  taxonomy: violation
+  source:
+    quote: Do not stack carelessly (align neatly).
+    inferred: false
+- id: c03_neutral_position
+  rule: Start pickup with arms in a neutral position.
+  applies_to:
+  - s02_pick_up_coaster
+  violation_looks_like: The person reaches for the coaster without first having arms hanging or resting
+    in a neutral position.
+  taxonomy: violation
+  source:
+    quote: Start with arms in a neutral position.
+    inferred: false
+- id: c04_pinch_grip
+  rule: Pick up 1 coaster at a time using a thumb-and-forefinger pinch grip across opposite ends.
+  applies_to:
+  - s02_pick_up_coaster
+  violation_looks_like: Multiple coasters are lifted at once, or a coaster is grasped with a full hand
+    wrap rather than a thumb-and-forefinger pinch grip on opposite ends.
+  taxonomy: violation
+  source:
+    quote: Pick up 1 coaster at a time using a thumb-and-forefinger pinch grip across opposite ends.
+    inferred: false
+not_modelled:
+- quote: 'Reset: Vary coaster materials and positions each episode.'
+  reason: Instruction about varying items across recordings.
+- quote: 'Diversity: Vary coaster materials (wood, cork, stone). Change positions across different tables
+    (coffee table, side tables). Vary number of coasters (2–4).'
+  reason: Dataset diversity instructions.
+- quote: stand still for 1 second.
+  reason: Duration / timing requirement checked separately.
+- quote: stop for 1 second.
+  reason: Duration / timing requirement checked separately.

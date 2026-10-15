@@ -1,0 +1,398 @@
+task_id: arrange_throw_pillows_neatly_on_couch
+name: Arrange throw pillows neatly on couch
+version: 0.1.0
+domain: household
+description: Arrange throw pillows neatly on couch
+objects:
+- id: throw_pillow
+  name: throw pillow
+  category: part
+  aliases:
+  - throw pillow
+  - pillow
+  - cushion
+  substitutes: []
+  hazards: []
+  kinds:
+  - Throw pillows
+  - cushions
+  source:
+    quote: Throw pillows / cushions.
+    inferred: false
+initial_state:
+- name: IsScattered
+  args:
+  - throw_pillow
+  value: true
+  checker: vlm_effect
+  scope: global
+- name: IsArrangedOnCouch
+  args:
+  - throw_pillow
+  value: false
+  checker: vlm_effect
+  scope: cumulative
+goal:
+- name: IsArrangedOnCouch
+  args:
+  - throw_pillow
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+nodes:
+- id: start
+  name: start
+  kind: start
+  description: Start of task execution
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Initial state before any pillow is collected.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+- id: s01_walk_to_pillow
+  name: walk_to_pillow
+  kind: step
+  description: Walk to the pillow and stand still for 1 second.
+  preconditions: []
+  effects:
+  - name: IsNearPillow
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - throw_pillow
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Standing still near the pillow for at least one second.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: Walk to the pillow and stand still for 1 second.
+    inferred: false
+- id: s02_pick_up_pillow
+  name: pick_up_pillow
+  kind: step
+  description: Start with arms in a neutral position. Pick up the pillow with both hands gripping the
+    center.
+  preconditions:
+  - name: IsNearPillow
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: IsGrippingCenter
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - throw_pillow
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Pillow is lifted with both hands gripping its center.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: Start with arms in a neutral position. Pick up the pillow with both hands gripping the center.
+    inferred: false
+- id: s03_walk_to_sofa
+  name: walk_to_sofa
+  kind: step
+  description: Walk to the sofa and stop for 1 second.
+  preconditions:
+  - name: IsGrippingCenter
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: IsNearSofa
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - throw_pillow
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Stopped in front of the sofa for at least one second while holding the pillow.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: Walk to the sofa and stop for 1 second.
+    inferred: false
+- id: s04_place_pillow
+  name: place_pillow
+  kind: step
+  description: Place the pillow against the sofa arm or backrest, then release (the pillow should lean
+    without falling).
+  preconditions:
+  - name: IsNearSofa
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: IsGrippingCenter
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: IsGrippingCenter
+    args:
+    - throw_pillow
+    value: false
+    checker: vlm_effect
+    scope: instance
+  - name: IsLeaningAgainstSofa
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: instance
+  - name: IsArrangedOnCouch
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: true
+  permitted_repeats: 999
+  target_objects:
+  - throw_pillow
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: The pillow leans stably against the sofa arm or backrest and hands are released.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: Place the pillow against the sofa arm or backrest, then release (the pillow should lean without
+      falling).
+    inferred: false
+- id: end
+  name: end
+  kind: end
+  description: End of task execution
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: All throw pillows are neatly arranged leaning on the couch.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+edges:
+- source: start
+  target: s01_walk_to_pillow
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s01_walk_to_pillow
+  target: s02_pick_up_pillow
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s01_walk_to_pillow
+  target: s02_pick_up_pillow
+  relation: PROVIDES_INPUT_FOR
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_pillow
+  target: s03_walk_to_sofa
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_pillow
+  target: s03_walk_to_sofa
+  relation: PROVIDES_INPUT_FOR
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s03_walk_to_sofa
+  target: s04_place_pillow
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s03_walk_to_sofa
+  target: s04_place_pillow
+  relation: PROVIDES_INPUT_FOR
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s04_place_pillow
+  target: end
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+provenance:
+  source: llm_draft_v2
+  model: gemini-3.8-flash
+  created_at: '2026-10-12T05:33:14+00:00'
+  notes:
+  - 0 lint warnings at acceptance
+  - 1 inferred elements
+  - usd=0.0438
+metadata: {}
+schema_version: '2'
+scenario:
+  activity_type: ''
+  site_id: ''
+  location: ''
+  scene_type: ''
+  country: ''
+  other: {}
+  source:
+    quote: ''
+    inferred: true
+starting_state:
+- description: There are 2 to 4 throw pillows.
+  objects:
+  - throw_pillow
+  predicates:
+  - name: IsArrangedOnCouch
+    args:
+    - throw_pillow
+    value: false
+    checker: vlm_effect
+    scope: cumulative
+  source:
+    quote: 'Items: 2–4 throw pillows.'
+    inferred: false
+- description: Pillows are scattered on the floor and/or other furniture.
+  objects:
+  - throw_pillow
+  predicates:
+  - name: IsScattered
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: global
+  source:
+    quote: 'Position: Scattered on the floor and/or other furniture.'
+    inferred: false
+repeat_blocks:
+- id: rb01
+  steps:
+  - s01_walk_to_pillow
+  - s02_pick_up_pillow
+  - s03_walk_to_sofa
+  - s04_place_pillow
+  unit: pillow
+  objects:
+  - throw_pillow
+  until:
+  - name: IsArrangedOnCouch
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  until_description: all pillows are arranged on the couch
+  count_hint: 2–4
+  source:
+    quote: 'Items: 2–4 throw pillows.'
+    inferred: false
+acceptance:
+- id: a01
+  step: s04_place_pillow
+  objects:
+  - throw_pillow
+  criterion: The pillow leans against the sofa arm or backrest without falling.
+  predicate:
+    name: IsLeaningAgainstSofa
+    args:
+    - throw_pillow
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: (the pillow should lean without falling)
+    inferred: false
+constraints:
+- id: c01
+  rule: Do not throw pillows onto couch.
+  applies_to:
+  - s04_place_pillow
+  violation_looks_like: A pillow is thrown or tossed onto the couch instead of being placed and released
+    by hand.
+  taxonomy: violation
+  source:
+    quote: Do not throw pillows onto couch.
+    inferred: false
+not_modelled:
+- quote: 'Name: Arrange throw pillows neatly on couch'
+  reason: Task name / title.
+- quote: 'From: Floor / scattered on furniture.'
+  reason: Task summary description.
+- quote: 'To: Arranged on couch.'
+  reason: Task summary description.
+- quote: 'Reset: Randomize starting positions each episode; vary pillow sizes and shapes.'
+  reason: Instructions about resetting between recordings and varying the dataset.
+- quote: 'Diversity: Vary pillow sizes and shapes.'
+  reason: Data collection diversity guideline.
+- quote: Change starting positions (floor vs. other furniture).
+  reason: Data collection diversity guideline.
+- quote: Vary number of pillows (2–4).
+  reason: Data collection diversity guideline.
+- quote: Change arrangement style on couch.
+  reason: Data collection diversity guideline.

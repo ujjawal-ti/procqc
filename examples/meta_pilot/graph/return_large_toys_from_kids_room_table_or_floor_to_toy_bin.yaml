@@ -1,0 +1,462 @@
+task_id: return_large_toys_from_kids_room_table_or_floor_to_toy_bin
+name: Return large toys from kids room table or floor to toy bin
+version: 0.1.0
+domain: household
+description: Return large toys from kids room table or floor to toy bin.
+objects:
+- id: toys
+  name: Toys
+  category: part
+  aliases:
+  - toys
+  - toy
+  - blocks
+  - cars
+  - dolls
+  - plushies
+  substitutes: []
+  hazards: []
+  kinds:
+  - blocks
+  - cars
+  - dolls
+  - plushies
+  source:
+    quote: Toys (blocks, cars, dolls, plushies, etc.).
+    inferred: false
+- id: toy_bin
+  name: Toy bin / basket
+  category: container
+  aliases:
+  - toy bin
+  - basket
+  - bin
+  substitutes: []
+  hazards: []
+  kinds:
+  - Toy bin
+  - basket
+  source:
+    quote: 'To: Toy bin / basket.'
+    inferred: false
+initial_state:
+- name: Present
+  args:
+  - toys
+  value: true
+  checker: detector
+  scope: global
+- name: ScatteredOnFloorOrTable
+  args:
+  - toys
+  value: true
+  checker: vlm_effect
+  scope: global
+goal:
+- name: InContainer
+  args:
+  - toys
+  - toy_bin
+  value: true
+  checker: vlm_effect
+  scope: cumulative
+- name: FloorClear
+  args:
+  - toys
+  value: true
+  checker: vlm_effect
+  scope: global
+nodes:
+- id: start
+  name: Start
+  kind: start
+  description: Start of task.
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: ''
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+- id: s01_walk_to_toys
+  name: Walk to toys
+  kind: step
+  description: Walk to the toys and stand still for 1 second.
+  preconditions: []
+  effects:
+  - name: AtLocation
+    args:
+    - toys
+    value: true
+    checker: vlm_effect
+    scope: global
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - toys
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Standing still near the toys.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 1. Walk to the toys and stand still for 1 second.
+    inferred: false
+- id: s02_pick_up_toys
+  name: Pick up toys
+  kind: step
+  description: Start with arms in a neutral position. Pick up 1 large toy with both hands, or gather 2–3
+    small items (e.g., blocks) in one cupped hand.
+  preconditions:
+  - name: AtLocation
+    args:
+    - toys
+    value: true
+    checker: vlm_effect
+    scope: global
+  effects:
+  - name: Holding
+    args:
+    - toys
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - toys
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Holding 1 large toy with both hands or 2–3 small items in one cupped hand.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 2. Start with arms in a neutral position. Pick up 1 large toy with both hands, or gather 2–3
+      small items (e.g., blocks) in one cupped hand.
+    inferred: false
+- id: s03_walk_to_bin
+  name: Walk to bin
+  kind: step
+  description: Walk to the bin and stop for 1 second.
+  preconditions:
+  - name: Holding
+    args:
+    - toys
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: AtLocation
+    args:
+    - toy_bin
+    value: true
+    checker: vlm_effect
+    scope: global
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - toy_bin
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: Stopped in front of the toy bin.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 3. Walk to the bin and stop for 1 second.
+    inferred: false
+- id: s04_place_into_bin
+  name: Place into bin
+  kind: step
+  description: Hold the item(s) directly over the bin opening and place into the bin.
+  preconditions:
+  - name: AtLocation
+    args:
+    - toy_bin
+    value: true
+    checker: vlm_effect
+    scope: global
+  - name: Holding
+    args:
+    - toys
+    value: true
+    checker: vlm_effect
+    scope: instance
+  effects:
+  - name: Holding
+    args:
+    - toys
+    value: false
+    checker: vlm_effect
+    scope: instance
+  - name: InContainer
+    args:
+    - toys
+    - toy_bin
+    value: true
+    checker: vlm_effect
+    scope: instance
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 999
+  target_objects:
+  - toys
+  - toy_bin
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: The item(s) are placed inside the bin.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 4. Hold the item(s) directly over the bin opening and place into the bin.
+    inferred: false
+- id: s05_repeat_until_clear
+  name: Repeat until clear
+  kind: check
+  description: Repeat until the floor is clear.
+  preconditions:
+  - name: InContainer
+    args:
+    - toys
+    - toy_bin
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  effects:
+  - name: FloorClear
+    args:
+    - toys
+    value: true
+    checker: vlm_effect
+    scope: global
+  optional: false
+  mandatory_terminal: true
+  permitted_repeats: 1
+  target_objects:
+  - toys
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: The floor is clear of toys.
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: 5. Repeat until the floor is clear.
+    inferred: false
+- id: end
+  name: End
+  kind: end
+  description: End of task.
+  preconditions: []
+  effects: []
+  optional: false
+  mandatory_terminal: false
+  permitted_repeats: 1
+  target_objects: []
+  tools: []
+  allowed_substitutes: {}
+  settle_time_s: 0.0
+  effect_description: ''
+  start_rule: ''
+  end_rule: ''
+  guidance: ''
+  pitfalls: []
+  source:
+    quote: ''
+    inferred: false
+edges:
+- source: start
+  target: s01_walk_to_toys
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s01_walk_to_toys
+  target: s02_pick_up_toys
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_toys
+  target: s03_walk_to_bin
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s02_pick_up_toys
+  target: s04_place_into_bin
+  relation: PROVIDES_INPUT_FOR
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s03_walk_to_bin
+  target: s04_place_into_bin
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s04_place_into_bin
+  target: s05_repeat_until_clear
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+- source: s05_repeat_until_clear
+  target: end
+  relation: LEADS_TO
+  condition: ''
+  guidance: ''
+  pitfalls: []
+provenance:
+  source: llm_draft_v2
+  model: gemini-3.8-flash
+  created_at: '2026-10-12T05:34:50+00:00'
+  notes:
+  - 0 lint warnings at acceptance
+  - 0 inferred elements
+  - usd=0.1009
+metadata: {}
+schema_version: '2'
+scenario:
+  activity_type: ''
+  site_id: ''
+  location: Kids room
+  scene_type: ''
+  country: ''
+  other:
+    name: Return large toys from kids room table or floor to toy bin
+    from: Kids room floor.
+    to: Toy bin / basket.
+  source:
+    quote: 'From: Kids room floor.'
+    inferred: false
+starting_state:
+- description: There are 3–6 toys present.
+  objects:
+  - toys
+  predicates:
+  - name: Present
+    args:
+    - toys
+    value: true
+    checker: detector
+    scope: global
+  source:
+    quote: 'Items: 3–6 toys.'
+    inferred: false
+- description: Toys are randomly scattered on the floor and/or table.
+  objects:
+  - toys
+  predicates:
+  - name: ScatteredOnFloorOrTable
+    args:
+    - toys
+    value: true
+    checker: vlm_effect
+    scope: global
+  source:
+    quote: 'Position: Randomly scattered on the floor and/or table.'
+    inferred: false
+repeat_blocks:
+- id: repeat_block_1
+  steps:
+  - s01_walk_to_toys
+  - s02_pick_up_toys
+  - s03_walk_to_bin
+  - s04_place_into_bin
+  unit: 1 large toy or 2–3 small items
+  objects:
+  - toys
+  until:
+  - name: FloorClear
+    args:
+    - toys
+    value: true
+    checker: vlm_effect
+    scope: cumulative
+  until_description: the floor is clear
+  count_hint: 3–6 toys
+  source:
+    quote: Repeat until the floor is clear.
+    inferred: false
+acceptance:
+- id: acc_01
+  step: s04_place_into_bin
+  objects:
+  - toys
+  - toy_bin
+  criterion: The item(s) are placed inside the bin.
+  predicate:
+    name: InContainer
+    args:
+    - toys
+    - toy_bin
+    value: true
+    checker: vlm_effect
+    scope: instance
+  per_object: true
+  source:
+    quote: place into the bin.
+    inferred: false
+constraints:
+- id: const_01
+  rule: No small parts or items requiring fine manipulation are permitted.
+  applies_to:
+  - '*'
+  violation_looks_like: The person manipulates tiny toy components or items requiring delicate, fine-motor
+    handling.
+  taxonomy: violation
+  source:
+    quote: 'Prohibited Objects: No small parts or items requiring fine manipulation.'
+    inferred: false
+- id: const_02
+  rule: Do not throw toys into bin.
+  applies_to:
+  - s04_place_into_bin
+  violation_looks_like: A toy is tossed, dropped from a distance, or thrown through the air toward or
+    into the bin.
+  taxonomy: violation
+  source:
+    quote: Do not throw toys into bin.
+    inferred: false
+- id: const_03
+  rule: Do not overfill bin.
+  applies_to:
+  - s04_place_into_bin
+  violation_looks_like: Toys are piled above the rim of the bin causing items to spill or overflow.
+  taxonomy: violation
+  source:
+    quote: Do not overfill bin.
+    inferred: false
+not_modelled:
+- quote: 'Reset: Randomize positions each episode.'
+  reason: Instruction about resetting the scene between recording episodes.
+- quote: 'Diversity: Vary toy types (blocks, cars, dolls, plushies). Change positions (floor vs. table).
+    Vary number of items (3–6). Change bin location.'
+  reason: Instruction on dataset diversity across recordings.

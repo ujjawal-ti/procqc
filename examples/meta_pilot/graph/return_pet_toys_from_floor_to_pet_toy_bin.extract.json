@@ -1,0 +1,109 @@
+{
+ "scenario": {
+  "activity_type": "",
+  "site_id": "",
+  "location": "",
+  "scene_type": "",
+  "country": "",
+  "quote": "Name: Return pet toys from floor to pet toy bin",
+  "other": {
+   "name": "Return pet toys from floor to pet toy bin",
+   "from": "Floor.",
+   "to": "Pet toy bin/basket."
+  }
+ },
+ "objects": [
+  {
+   "name": "pet toy",
+   "role": "item to be picked up from the floor and placed into the bin",
+   "kinds": [
+    "plush toys",
+    "rubber balls",
+    "rope toys",
+    "etc."
+   ],
+   "quote": "Pet toys (plush toys, rubber balls, rope toys, etc.)."
+  },
+  {
+   "name": "pet toy bin",
+   "role": "container to hold the pet toys",
+   "kinds": [
+    "bin",
+    "basket"
+   ],
+   "quote": "To: Pet toy bin/basket."
+  }
+ ],
+ "starting_state": [
+  {
+   "fact": "There are 2 to 4 pet toys present.",
+   "quote": "Items: 2\u20134 pet toys (plush, rubber, rope, ball)."
+  },
+  {
+   "fact": "The toys are scattered in random positions on the floor.",
+   "quote": "Position: Scattered on the floor in random positions."
+  }
+ ],
+ "steps": [
+  {
+   "number": 1,
+   "text": "Walk to the toy and stand still for 1 second.",
+   "quote": "1. Walk to the toy and stand still for 1 second."
+  },
+  {
+   "number": 2,
+   "text": "Start with arms in a neutral position. Pick up the toy with one hand, wrapping your fingers around the widest part.",
+   "quote": "2. Start with arms in a neutral position. Pick up the toy with one hand, wrapping your fingers around the widest part."
+  },
+  {
+   "number": 3,
+   "text": "Walk to the bin and stop for 1 second.",
+   "quote": "3. Walk to the bin and stop for 1 second."
+  },
+  {
+   "number": 4,
+   "text": "Hold the toy over the bin opening and release.",
+   "quote": "4. Hold the toy over the bin opening and release."
+  }
+ ],
+ "repeat": {
+  "present": true,
+  "step_numbers": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "unit": "pet toy",
+  "end_condition": "all pet toys are returned to the bin",
+  "count": "2\u20134",
+  "quote": "Items: 2\u20134 pet toys (plush, rubber, rope, ball)."
+ },
+ "acceptance": [
+  {
+   "step_number": 2,
+   "criterion": "The fingers are wrapped around the widest part of the toy when picked up.",
+   "quote": "wrapping your fingers around the widest part"
+  }
+ ],
+ "constraints": [
+  {
+   "rule": "Do not throw toys into bin.",
+   "step_numbers": [
+    4
+   ],
+   "violation_looks_like": "The person throws or tosses the toy toward or into the bin instead of holding it over the opening and releasing it.",
+   "quote": "Do not throw toys into bin."
+  }
+ ],
+ "not_modelled": [
+  {
+   "reason": "Instruction for resetting the environment between recordings.",
+   "quote": "Reset: Randomize positions and vary toy types each episode."
+  },
+  {
+   "reason": "Instruction on varying parameters across data collection recordings.",
+   "quote": "Diversity: Vary toy types (plush, rubber, rope). Change positions on floor. Vary number of items (2\u20134). Change bin location."
+  }
+ ]
+}
